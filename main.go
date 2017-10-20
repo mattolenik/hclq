@@ -4,12 +4,11 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/docopt/docopt-go"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
-	jsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/hashicorp/hcl/hcl/printer"
+	jsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/mattolenik/hclq/query"
 	"io"
 	"io/ioutil"
@@ -58,19 +57,27 @@ func get(arguments map[string]interface{}, query []query.Node) error {
 		reader = os.Stdin
 	} else {
 		file, err := os.Open(fileName)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		defer file.Close()
 		reader = bufio.NewReader(file)
 	}
 
 	bytes, err := ioutil.ReadAll(reader)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	node, err := parser.Parse(bytes)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	result, err := getImpl(node.Node, query, 0)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	fmt.Printf("%+v", result)
 	return nil
@@ -143,10 +150,14 @@ func set(arguments map[string]interface{}, query []query.Node) error {
 
 	if fileName, ok = arguments["<file>"].(string); ok {
 		hcl, err = ioutil.ReadFile(fileName)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	} else {
 		hcl, err = ioutil.ReadAll(os.Stdin)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	}
 
 	node, err := parser.Parse(hcl)
@@ -155,11 +166,15 @@ func set(arguments map[string]interface{}, query []query.Node) error {
 	}
 
 	err = setImpl(node.Node, query, arguments["<value>"].(string), 0)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	if arguments["-i"].(bool) {
 		file, err := os.Create(fileName)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 		defer file.Close()
 		printer.Fprint(file, node)
 	} else {
@@ -203,8 +218,10 @@ func setImpl(node ast.Node, query []query.Node, value string, queryIdx int) erro
 		// HCL JSON parser needs a top level object
 		jsonValue := fmt.Sprintf(`{"root": %s}`, value)
 		tree, err := jsonParser.Parse([]byte(jsonValue))
-		if err != nil { return err }
-		list.List = []ast.Node { tree.Node.(*ast.ObjectList).Items[0].Val }
+		if err != nil {
+			return err
+		}
+		list.List = []ast.Node{tree.Node.(*ast.ObjectList).Items[0].Val}
 		return nil
 	}
 	if objType, ok := node.(*ast.ObjectType); ok {
@@ -237,6 +254,5 @@ func toGoType(node ast.Node) (interface{}, error) {
 		result, err := toGoType(objectItem.Val)
 		return result, err
 	}
-	spew.Dump(node)
 	return "", nil
 }

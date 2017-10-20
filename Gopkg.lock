@@ -2,12 +2,6 @@
 
 
 [[projects]]
-  name = "github.com/davecgh/go-spew"
-  packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
-
-[[projects]]
   name = "github.com/docopt/docopt-go"
   packages = ["."]
   revision = "784ddc588536785e7299f7272f39101f7faccc3f"
@@ -22,6 +16,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f4d1bc88d35fcb2fe4224839db5782dd61e6b01f6322c9ded8fb0e257f6a73b1"
+  inputs-digest = "e87337bb60964eeef4475bc8796f26538473ed339ec3b8720dbe46339cb7c6d7"
   solver-name = "gps-cdcl"
   solver-version = 1

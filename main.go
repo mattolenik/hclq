@@ -1,18 +1,20 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
-	"github.com/hashicorp/hcl/hcl/parser"
-	"github.com/hashicorp/hcl/hcl/ast"
-	"io/ioutil"
-	"github.com/docopt/docopt-go"
-	"regexp"
-	"os"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/docopt/docopt-go"
+	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/hcl/hcl/parser"
+	"github.com/hashicorp/hcl/hcl/printer"
+	"github.com/mattolenik/hclq/query"
+	"io"
+	"io/ioutil"
+	"os"
 	"strconv"
 	"strings"
-	"errors"
-	"github.com/hashicorp/hcl/hcl/printer"
 )
 
 func main() {
@@ -20,55 +22,64 @@ func main() {
 HCL Query/Editor
 
 Usage:
-  hclq get <path> <file>
-  hclq set <path> <value> <file>
-  hclq --help
-  hclq --version
+  hclq get <file> <nodePath>
+  hclq get <nodePath>
+  hclq set [-i] <file> <nodePath> <value>
+  hclq set <nodePath> <value>
+  hclq -help
+  hclq -version
 
 Options:
-  --help     Show this screen.
-  --version  Show version.
+  -i        Modify file in-place instead of writing to stdout
+  -help     Show this screen
+  -version  Show version
 `
 	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", false)
-	query := make([]QueryNode, 0)
-	parseQuery(arguments["<path>"].(string), 0, &query)
+	query := query.Parse(arguments["<nodePath>"].(string))
+	var err error
 
 	if arguments["get"].(bool) {
-		bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
-		check(err)
-
-		node, err := parseAst(bytes);
-		check(err)
-
-		result, err := get(node.Node, query, 0)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-			os.Exit(1)
-		}
-		fmt.Printf("%+v", result)
+		err = get(arguments, query)
 	}
-
 	if arguments["set"].(bool) {
-		bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
-		check(err)
-
-		node, err := parseAst(bytes);
-		check(err)
-
-		err = set(node.Node, query, arguments["<value>"].(string), 0)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-			os.Exit(1)
-		}
-		printer.Fprint(os.Stdout, node)
+		err = set(arguments, query)
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s", err.Error())
+		os.Exit(1)
 	}
 }
 
-func get(node ast.Node, query []QueryNode, queryIdx int) (interface{}, error) {
+func get(arguments map[string]interface{}, query []query.Node) error {
+	var reader io.Reader
+	fileName, ok := arguments["<file>"].(string)
+	if !ok {
+		reader = os.Stdin
+	} else {
+		file, err := os.Open(fileName)
+		if err != nil { return err }
+		defer file.Close()
+		reader = bufio.NewReader(file)
+	}
+
+	bytes, err := ioutil.ReadAll(reader)
+	if err != nil { return err }
+
+	node, err := parser.Parse(bytes)
+	if err != nil { return err }
+
+	result, err := getImpl(node.Node, query, 0)
+	if err != nil { return err }
+
+	fmt.Printf("%+v", result)
+	return nil
+}
+
+func getImpl(node ast.Node, query []query.Node, queryIdx int) (interface{}, error) {
 	if objList, ok := node.(*ast.ObjectList); ok {
 		var result []interface{}
 		for _, obj := range objList.Items {
-			res, err := get(obj, query, queryIdx)
+			res, err := getImpl(obj, query, queryIdx)
 			if err != nil {
 				return nil, err
 			}
@@ -87,7 +98,7 @@ func get(node ast.Node, query []QueryNode, queryIdx int) (interface{}, error) {
 			if queryIdx >= queryLen {
 				return nil, nil
 			}
-			value := strings.Trim(key.Token.Text,"\"")
+			value := strings.Trim(key.Token.Text, "\"")
 			queryKey := query[queryIdx].Value()
 			if value != queryKey {
 				return nil, nil
@@ -96,7 +107,7 @@ func get(node ast.Node, query []QueryNode, queryIdx int) (interface{}, error) {
 		}
 		// Assume a match if the for loop didn't return
 		// Assume Keys will always be len > 0
-		return get(objItem.Val, query, queryIdx)
+		return getImpl(objItem.Val, query, queryIdx)
 	}
 	if literal, ok := node.(*ast.LiteralType); ok {
 		token := literal.Token.Text
@@ -118,15 +129,48 @@ func get(node ast.Node, query []QueryNode, queryIdx int) (interface{}, error) {
 		return result, nil
 	}
 	if objType, ok := node.(*ast.ObjectType); ok {
-		return get(objType.List, query, queryIdx)
+		return getImpl(objType.List, query, queryIdx)
 	}
 	return nil, errors.New("Unhandled case")
 }
 
-func set(node ast.Node, query []QueryNode, value string, queryIdx int) (error) {
+func set(arguments map[string]interface{}, query []query.Node) error {
+	var hcl []byte
+	var err error
+	var fileName string
+	var ok bool
+
+	if fileName, ok = arguments["<file>"].(string); ok {
+		hcl, err = ioutil.ReadFile(fileName)
+		if err != nil { return err }
+	} else {
+		hcl, err = ioutil.ReadAll(os.Stdin)
+		if err != nil { return err }
+	}
+
+	node, err := parser.Parse(hcl)
+	if err != nil {
+		return err
+	}
+
+	err = setImpl(node.Node, query, arguments["<value>"].(string), 0)
+	if err != nil { return err }
+
+	if arguments["-i"].(bool) {
+		file, err := os.Create(fileName)
+		if err != nil { return err }
+		defer file.Close()
+		printer.Fprint(file, node)
+	} else {
+		printer.Fprint(os.Stdout, node)
+	}
+	return nil
+}
+
+func setImpl(node ast.Node, query []query.Node, value string, queryIdx int) error {
 	if objList, ok := node.(*ast.ObjectList); ok {
 		for _, obj := range objList.Items {
-			err := set(obj, query, value, queryIdx)
+			err := setImpl(obj, query, value, queryIdx)
 			if err != nil {
 				return err
 			}
@@ -139,7 +183,7 @@ func set(node ast.Node, query []QueryNode, value string, queryIdx int) (error) {
 			if queryIdx >= queryLen {
 				return nil
 			}
-			value := strings.Trim(key.Token.Text,"\"")
+			value := strings.Trim(key.Token.Text, "\"")
 			queryKey := query[queryIdx].Value()
 			if value != queryKey {
 				return nil
@@ -148,25 +192,17 @@ func set(node ast.Node, query []QueryNode, value string, queryIdx int) (error) {
 		}
 		// Assume a match if the for loop didn't return
 		// Assume Keys will always be len > 0
-		return set(objItem.Val, query, value, queryIdx)
+		return setImpl(objItem.Val, query, value, queryIdx)
 	}
 	if literal, ok := node.(*ast.LiteralType); ok {
 		literal.Token.Text = value
 		return nil
 	}
 	//if list, ok := node.(*ast.ListType); ok {
-	//	var result []interface{}
-	//	for _, item := range list.List {
-	//		nextItem, err := toGoType(item)
-	//		if err != nil {
-	//			return nil, err
-	//		}
-	//		result = append(result, nextItem)
-	//	}
-	//	return result, nil
+	//	return nil
 	//}
 	if objType, ok := node.(*ast.ObjectType); ok {
-		return set(objType.List, query, value, queryIdx)
+		return setImpl(objType.List, query, value, queryIdx)
 	}
 	return errors.New("Unhandled case")
 }
@@ -197,59 +233,4 @@ func toGoType(node ast.Node) (interface{}, error) {
 	}
 	spew.Dump(node)
 	return "", nil
-}
-
-func check(err error) {
-	if err != nil {
-		fmt.Println(fmt.Errorf("%s", err))
-		os.Exit(1)
-	}
-}
-
-func parseAst(bytes []byte) (*ast.File, error) {
-	node, err := parser.Parse(bytes);
-	if err != nil {
-		return nil, err
-	}
-	return node, nil
-}
-
-func consume(s string) (node QueryNode, err error) {
-	if err != nil {
-		return
-	}
-	tok := LiteralRegex.FindString(s)
-	res := Key{
-		value: tok,
-	}
-	node = &res
-	return
-}
-
-var LiteralRegex, _ = regexp.Compile(`(\w+)`)
-
-// .simple.struct.value
-// .foo.bar.items[*]
-func parseQuery(query string, i int, queue *[]QueryNode) {
-	if i >= len(query) {
-		return
-	}
-	char := query[i:i+1]
-	if char == "." {
-		parseQuery(query, i+1, queue)
-		return
-	}
-	word := LiteralRegex.FindString(query[i:])
-	if word != "" {
-		i += len(word)
-		newNode := &Key{
-			value:      word,
-		}
-		*queue = append(*queue, newNode)
-		if i >= len(query) {
-			return
-		}
-		parseQuery(query, i, queue)
-		return
-	}
 }

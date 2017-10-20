@@ -8,6 +8,7 @@ import (
 	"github.com/docopt/docopt-go"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
+	jsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/mattolenik/hclq/query"
 	"io"
@@ -34,15 +35,15 @@ Options:
   -help     Show this screen
   -version  Show version
 `
-	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", false)
-	query := query.Parse(arguments["<nodePath>"].(string))
-	var err error
+	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", true)
+	queryNodes := query.Parse(arguments["<nodePath>"].(string))
 
+	var err error
 	if arguments["get"].(bool) {
-		err = get(arguments, query)
+		err = get(arguments, queryNodes)
 	}
 	if arguments["set"].(bool) {
-		err = set(arguments, query)
+		err = set(arguments, queryNodes)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s", err.Error())
@@ -198,9 +199,14 @@ func setImpl(node ast.Node, query []query.Node, value string, queryIdx int) erro
 		literal.Token.Text = value
 		return nil
 	}
-	//if list, ok := node.(*ast.ListType); ok {
-	//	return nil
-	//}
+	if list, ok := node.(*ast.ListType); ok {
+		// HCL JSON parser needs a top level object
+		jsonValue := fmt.Sprintf(`{"root": %s}`, value)
+		tree, err := jsonParser.Parse([]byte(jsonValue))
+		if err != nil { return err }
+		list.List = []ast.Node { tree.Node.(*ast.ObjectList).Items[0].Val }
+		return nil
+	}
 	if objType, ok := node.(*ast.ObjectType); ok {
 		return setImpl(objType.List, query, value, queryIdx)
 	}

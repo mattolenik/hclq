@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/docopt/docopt-go"
   packages = ["."]
   revision = "784ddc588536785e7299f7272f39101f7faccc3f"
@@ -10,12 +16,12 @@
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
-  packages = ["hcl/ast","hcl/parser","hcl/scanner","hcl/strconv","hcl/token"]
+  packages = ["hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
   revision = "42e33e2d55a0ff1d6263f738896ea8c13571a8d0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f0cb7f57e32e82a23f727b81b2850fb1f66dd2be8218349456ff84b663c787c0"
+  inputs-digest = "f4d1bc88d35fcb2fe4224839db5782dd61e6b01f6322c9ded8fb0e257f6a73b1"
   solver-name = "gps-cdcl"
   solver-version = 1

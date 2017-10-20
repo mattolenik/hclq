@@ -8,6 +8,10 @@ import (
 	"github.com/docopt/docopt-go"
 	"regexp"
 	"os"
+	"strings"
+	"github.com/davecgh/go-spew/spew"
+	"reflect"
+	"strconv"
 )
 
 func main() {
@@ -25,36 +29,98 @@ Options:
   --version  Show version.
 `
 	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", false)
-	fmt.Println(arguments)
 
-	var rt root
 	get := arguments["get"].(bool)
+	query := make([]QueryNode, 0)
 	if get {
-		rt = root {}
-		parseQuery(arguments["<path>"].(string), 0, &rt)
+		parseQuery(arguments["<path>"].(string), 0, &query)
 	}
-	fmt.Println(rt)
-	bytes, err := ioutil.ReadFile(arguments["<file>"].(string)); check(err)
-	node, err := parseAst(bytes); check(err)
+
+	bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
+	check(err)
+
+	node, err := parseAst(bytes);
+	check(err)
+
+	//spew.Dump(node)
+
+	var result interface{}
+	done := false
+	errResult := "Unable to satisfy query"
+	idxStack := []int{0}
+
 	ast.Walk(node, func(node ast.Node) (ast.Node, bool) {
-		//lt, ok := node.(*ast.LiteralType);
-		//if ok {
-		//	fmt.Println(lt.Token.Type, lt.Token.Value())
-		//}
-		//objectKey, ok := node.(*ast.ObjectKey)
-		//if ok {
-		//	fmt.Println(objectKey.GoString())
-		//}
+		if done {
+			return node, false
+		}
+
+		stackLen := len(idxStack)
+		qi := idxStack[stackLen - 1]
+		if stackLen > 0 {
+			idxStack = idxStack[:stackLen - 1]
+		}
+
 		objectItem, ok := node.(*ast.ObjectItem)
 		if ok {
-			fmt.Printf("%s %#v\n", objectItem.Val.Pos(), objectItem.Keys)
+			for _, key := range objectItem.Keys {
+				value := strings.Trim(key.Token.Text, "\"")
+				if qi >= len(query) || query[qi].Value() != value {
+					return node, false
+				}
+				qi++
+			}
+			idxStack = append(idxStack, qi + 1)
+			if qi >= len(query) {
+				result, err = toGoType(node)
+				if err != nil {
+					errResult = err.Error()
+					done = true
+					return node, false
+				}
+			}
+
+			return node, true
 		}
-		//objectList, ok := node.(*ast.ObjectList)
-		//if ok {
-		//	fmt.Println(objectList.Items)
-		//}
+		//	objectList, ok := node.(*ast.ObjectList)
+		//	if ok {
+		//		spew.Dump(objectList.Items[0].Val)
+		//	}
 		return node, true
 	})
+
+	if result == nil {
+		fmt.Fprintln(os.Stderr, errResult)
+	} else {
+		fmt.Printf("Type: %s, Value: %v", reflect.TypeOf(result), result)
+	}
+}
+
+func toGoType(node ast.Node) (interface{}, error) {
+	if literal, ok := node.(*ast.LiteralType); ok {
+		token := literal.Token.Text
+		num, err := strconv.ParseUint(token, 10, 64)
+		if err == nil {
+			return num, nil
+		}
+		return token, nil
+	}
+	if list, ok := node.(*ast.ListType); ok {
+		var result []interface{}
+		for _, item := range list.List {
+			nextItem, err := toGoType(item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, nextItem)
+		}
+		return result, nil
+	}
+	if objectItem, ok := node.(*ast.ObjectItem); ok {
+		result, err := toGoType(objectItem.Val)
+		return result, err
+	}
+	spew.Dump(node)
+	return "", nil
 }
 
 func check(err error) {
@@ -72,22 +138,13 @@ func parseAst(bytes []byte) (*ast.File, error) {
 	return node, nil
 }
 
-type queryNode interface {
-	next() queryNode
-	setNext(node queryNode)
-	value() string
-	setValue(value string)
-	token() string
-	setToken(value string)
-}
-
-func consume(s string) (node queryNode, err error) {
+func consume(s string) (node QueryNode, err error) {
 	if err != nil {
 		return
 	}
 	tok := LiteralRegex.FindString(s)
-	res := literal{
-		tok: tok,
+	res := Key{
+		value: tok,
 	}
 	node = &res
 	return
@@ -95,32 +152,28 @@ func consume(s string) (node queryNode, err error) {
 
 var LiteralRegex, _ = regexp.Compile(`(\w+)`)
 
-// .simple.struct.val
+// .simple.struct.value
 // .foo.bar.items[*]
-func parseQuery(query string, i int, node queryNode) {
-	next := i + 1
-	if next > len(query) {
+func parseQuery(query string, i int, queue *[]QueryNode) {
+	if i >= len(query) {
 		return
 	}
-	c := query[i:next]
-	if c == "." {
-		next += 1
-		newNode := &dot {
-			tokenStr: "dot",
-		}
-		node.setNext(newNode)
-		parseQuery(query, next, newNode)
+	char := query[i:i+1]
+	if char == "." {
+		parseQuery(query, i+1, queue)
 		return
 	}
-	word := LiteralRegex.FindString(query)
+	word := LiteralRegex.FindString(query[i:])
 	if word != "" {
-		newNode := &literal {
-			tok: "literal",
-			val: word,
+		i += len(word)
+		newNode := &Key{
+			value:      word,
 		}
-		node.setNext(newNode)
-		next += len(word)
-		parseQuery(query, next, newNode)
+		*queue = append(*queue, newNode)
+		if i >= len(query) {
+			return
+		}
+		parseQuery(query, i, queue)
 		return
 	}
 }

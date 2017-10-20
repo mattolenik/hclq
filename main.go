@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"errors"
+	"github.com/hashicorp/hcl/hcl/printer"
 )
 
 func main() {
@@ -20,7 +21,7 @@ HCL Query/Editor
 
 Usage:
   hclq get <path> <file>
-  hclq set <path>
+  hclq set <path> <value> <file>
   hclq --help
   hclq --version
 
@@ -29,10 +30,10 @@ Options:
   --version  Show version.
 `
 	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", false)
+	query := make([]QueryNode, 0)
+	parseQuery(arguments["<path>"].(string), 0, &query)
 
 	if arguments["get"].(bool) {
-		query := make([]QueryNode, 0)
-		parseQuery(arguments["<path>"].(string), 0, &query)
 		bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
 		check(err)
 
@@ -45,6 +46,21 @@ Options:
 			os.Exit(1)
 		}
 		fmt.Printf("%+v", result)
+	}
+
+	if arguments["set"].(bool) {
+		bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
+		check(err)
+
+		node, err := parseAst(bytes);
+		check(err)
+
+		err = set(node.Node, query, arguments["<value>"].(string), 0)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+			os.Exit(1)
+		}
+		printer.Fprint(os.Stdout, node)
 	}
 }
 
@@ -105,6 +121,54 @@ func get(node ast.Node, query []QueryNode, queryIdx int) (interface{}, error) {
 		return get(objType.List, query, queryIdx)
 	}
 	return nil, errors.New("Unhandled case")
+}
+
+func set(node ast.Node, query []QueryNode, value string, queryIdx int) (error) {
+	if objList, ok := node.(*ast.ObjectList); ok {
+		for _, obj := range objList.Items {
+			err := set(obj, query, value, queryIdx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if objItem, ok := node.(*ast.ObjectItem); ok {
+		queryLen := len(query)
+		for _, key := range objItem.Keys {
+			if queryIdx >= queryLen {
+				return nil
+			}
+			value := strings.Trim(key.Token.Text,"\"")
+			queryKey := query[queryIdx].Value()
+			if value != queryKey {
+				return nil
+			}
+			queryIdx++
+		}
+		// Assume a match if the for loop didn't return
+		// Assume Keys will always be len > 0
+		return set(objItem.Val, query, value, queryIdx)
+	}
+	if literal, ok := node.(*ast.LiteralType); ok {
+		literal.Token.Text = value
+		return nil
+	}
+	//if list, ok := node.(*ast.ListType); ok {
+	//	var result []interface{}
+	//	for _, item := range list.List {
+	//		nextItem, err := toGoType(item)
+	//		if err != nil {
+	//			return nil, err
+	//		}
+	//		result = append(result, nextItem)
+	//	}
+	//	return result, nil
+	//}
+	if objType, ok := node.(*ast.ObjectType); ok {
+		return set(objType.List, query, value, queryIdx)
+	}
+	return errors.New("Unhandled case")
 }
 
 func toGoType(node ast.Node) (interface{}, error) {

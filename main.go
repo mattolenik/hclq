@@ -8,10 +8,10 @@ import (
 	"github.com/docopt/docopt-go"
 	"regexp"
 	"os"
-	"strings"
 	"github.com/davecgh/go-spew/spew"
-	"reflect"
 	"strconv"
+	"strings"
+	"errors"
 )
 
 func main() {
@@ -30,69 +30,81 @@ Options:
 `
 	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", false)
 
-	get := arguments["get"].(bool)
-	query := make([]QueryNode, 0)
-	if get {
+	if arguments["get"].(bool) {
+		query := make([]QueryNode, 0)
 		parseQuery(arguments["<path>"].(string), 0, &query)
+		bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
+		check(err)
+
+		node, err := parseAst(bytes);
+		check(err)
+
+		result, err := get(node.Node, query, 0)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+			os.Exit(1)
+		}
+		fmt.Printf("%+v", result)
 	}
+}
 
-	bytes, err := ioutil.ReadFile(arguments["<file>"].(string));
-	check(err)
-
-	node, err := parseAst(bytes);
-	check(err)
-
-	//spew.Dump(node)
-
-	var result interface{}
-	done := false
-	errResult := "Unable to satisfy query"
-	idxStack := []int{0}
-
-	ast.Walk(node, func(node ast.Node) (ast.Node, bool) {
-		if done {
-			return node, false
-		}
-
-		stackLen := len(idxStack)
-		qi := idxStack[stackLen - 1]
-		if stackLen > 0 {
-			idxStack = idxStack[:stackLen - 1]
-		}
-
-		objectItem, ok := node.(*ast.ObjectItem)
-		if ok {
-			for _, key := range objectItem.Keys {
-				value := strings.Trim(key.Token.Text, "\"")
-				if qi >= len(query) || query[qi].Value() != value {
-					return node, false
-				}
-				qi++
+func get(node ast.Node, query []QueryNode, queryIdx int) (interface{}, error) {
+	if objList, ok := node.(*ast.ObjectList); ok {
+		var result []interface{}
+		for _, obj := range objList.Items {
+			res, err := get(obj, query, queryIdx)
+			if err != nil {
+				return nil, err
 			}
-			idxStack = append(idxStack, qi + 1)
-			if qi >= len(query) {
-				result, err = toGoType(node)
-				if err != nil {
-					errResult = err.Error()
-					done = true
-					return node, false
-				}
+			if res != nil {
+				result = append(result, res)
 			}
-
-			return node, true
 		}
-		//	objectList, ok := node.(*ast.ObjectList)
-		//	if ok {
-		//		spew.Dump(objectList.Items[0].Val)
-		//	}
-		return node, true
-	})
-
-	if result == nil {
-		fmt.Fprintln(os.Stderr, errResult)
-	} else {
-		fmt.Printf("Type: %s, Value: %v", reflect.TypeOf(result), result)
+		if len(result) == 1 {
+			return result[0], nil
+		}
+		return result, nil
 	}
+	if objItem, ok := node.(*ast.ObjectItem); ok {
+		queryLen := len(query)
+		for _, key := range objItem.Keys {
+			if queryIdx >= queryLen {
+				return nil, nil
+			}
+			value := strings.Trim(key.Token.Text,"\"")
+			queryKey := query[queryIdx].Value()
+			if value != queryKey {
+				return nil, nil
+			}
+			queryIdx++
+		}
+		// Assume a match if the for loop didn't return
+		// Assume Keys will always be len > 0
+		return get(objItem.Val, query, queryIdx)
+	}
+	if literal, ok := node.(*ast.LiteralType); ok {
+		token := literal.Token.Text
+		num, err := strconv.ParseUint(token, 10, 64)
+		if err == nil {
+			return num, nil
+		}
+		return token, nil
+	}
+	if list, ok := node.(*ast.ListType); ok {
+		var result []interface{}
+		for _, item := range list.List {
+			nextItem, err := toGoType(item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, nextItem)
+		}
+		return result, nil
+	}
+	if objType, ok := node.(*ast.ObjectType); ok {
+		return get(objType.List, query, queryIdx)
+	}
+	return nil, errors.New("Unhandled case")
 }
 
 func toGoType(node ast.Node) (interface{}, error) {

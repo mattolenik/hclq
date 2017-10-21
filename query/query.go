@@ -17,7 +17,7 @@ func (l *Key) Value() string {
 
 var keyRegex, _ = regexp.Compile(`(\w+)`)
 
-func Parse(query string) ([]Node) {
+func Parse(query string) []Node {
 	queryList := make([]Node, 0)
 	parseQuery(query, 0, &queryList)
 	return queryList
@@ -29,7 +29,7 @@ func parseQuery(query string, i int, queue *[]Node) {
 	if i >= len(query) {
 		return
 	}
-	char := query[i:i+1]
+	char := query[i : i+1]
 	if char == "." {
 		parseQuery(query, i+1, queue)
 		return

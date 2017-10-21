@@ -221,7 +221,7 @@ func setImpl(node ast.Node, query []query.Node, value string, queryIdx int) erro
 		if err != nil {
 			return err
 		}
-		list.List = []ast.Node{tree.Node.(*ast.ObjectList).Items[0].Val}
+		list.List = tree.Node.(*ast.ObjectList).Items[0].Val.(*ast.ListType).List
 		return nil
 	}
 	if objType, ok := node.(*ast.ObjectType); ok {

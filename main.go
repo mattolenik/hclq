@@ -17,6 +17,9 @@ import (
 	"strings"
 )
 
+// Automatically replaced when building with -ldflags="-X main.version=<version>"
+var version = "undefined"
+
 func main() {
 	usage := `
 HCL Query/Editor
@@ -26,15 +29,15 @@ Usage:
   hclq get <nodePath>
   hclq set [-i] <file> <nodePath> <value>
   hclq set <nodePath> <value>
-  hclq -help
-  hclq -version
+  hclq --help
+  hclq --version
 
 Options:
   -i        Modify file in-place instead of writing to stdout
-  -help     Show this screen
-  -version  Show version
+  --help     Show this screen
+  --version  Show version
 `
-	arguments, _ := docopt.Parse(usage, nil, true, "0.1.0-DEV", true)
+	arguments, _ := docopt.Parse(usage, nil, true, version, true)
 	queryNodes := query.Parse(arguments["<nodePath>"].(string))
 
 	var err error

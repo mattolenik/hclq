@@ -1,3 +1,4 @@
+LDFLAGS=$(shell echo -X main.version=$$(git describe --always --dirty))
 default: build
 
 get:
@@ -5,12 +6,12 @@ get:
 	dep ensure
 
 build: get
-	GOOS=darwin GOARCH=amd64 go build -o dist/hclq-macos-amd64
-	GOOS=linux GOARCH=amd64 go build -o dist/hclq-linux-amd64
-	GOOS=windows GOARCH=amd64 go build -o dist/hclq-windows-amd64
+	GOOS=darwin  GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-macos-amd64
+	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
+	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
 install:
-	go install
+	go install -ldflags="${LDFLAGS}"
 
 clean:
 	rm -rf dist

@@ -1,10 +1,12 @@
 default: build
 
-build:
+get:
+	go get -u github.com/golang/dep/cmd/dep
+	dep ensure
+
+build: get
 	GOOS=darwin GOARCH=amd64 go build -o dist/hclq-macos-amd64
 	GOOS=linux GOARCH=amd64 go build -o dist/hclq-linux-amd64
-
-build-win:
 	GOOS=windows GOARCH=amd64 go build -o dist/hclq-windows-amd64
 
 install:
@@ -13,4 +15,4 @@ install:
 clean:
 	rm -rf dist
 
-.PHONY: build clean install
+.PHONY: build clean get install

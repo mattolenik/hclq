@@ -30,19 +30,20 @@ func main() {
 HCL Query/Edit Tool
 
 Usage:
-  hclq get [--raw] <file> <nodePath>
-  hclq get [--raw] <nodePath>
-  hclq set [--in-place] <file> <nodePath> <value>
-  hclq set <nodePath> <value>
+  hclq get [options] <nodePath> <file>
+  hclq get [options] <nodePath> [-]
+  hclq set [options] <nodePath> <value> <file>
+  hclq set [options] <nodePath> <value> [-]
 
   hclq --help
   hclq --version
 
 Options:
-  --in-place        Modify file in-place instead of writing to stdout
-  --raw             Output in raw mode (Go printf %+v) instead of JSON
-  --help            Show this screen
-  --version         Show version
+  -i --in-place        Modify file in-place instead of writing to stdout
+  -r --raw             Output in raw mode (Go printf %+v) instead of JSON
+  -q --quiet           Ignore failures, output matches or nothing at all
+  --help               Show this screen
+  --version            Show version
 `
 	arguments, _ := docopt.Parse(usage, nil, true, version, false)
 	queryNodes := query.Parse(arguments["<nodePath>"].(string))
@@ -55,7 +56,7 @@ Options:
 	} else if arguments["set"].(bool) {
 		err = set(arguments, queryNodes)
 	}
-	if err != nil {
+	if err != nil && !arguments["--quiet"].(bool) {
 		getErrorOutput(err, raw)
 		os.Exit(1)
 	}

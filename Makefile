@@ -10,7 +10,7 @@ build: get
 	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
-build-brew: get
+brew: get
 	GOOS=darwin  GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq
 
 install:
@@ -19,4 +19,4 @@ install:
 clean:
 	rm -rf dist
 
-.PHONY: build clean get install
+.PHONY: brew build clean get install

@@ -111,7 +111,12 @@ func get(arguments map[string]interface{}, query []query.Node, raw bool) error {
 		return err
 	}
 
-	fmt.Println(getOutput(result, raw))
+	output, err := getOutput(result, raw)
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(output)
 	return nil
 }
 
@@ -250,6 +255,7 @@ func toGoType(node ast.Node) (interface{}, error) {
 	if literal, ok := node.(*ast.LiteralType); ok {
 		switch literal.Token.Type {
 		case token.STRING:
+			return literal.Token.Value().(string), nil
 		case token.HEREDOC:
 			return literal.Token.Value().(string), nil
 		case token.FLOAT:
@@ -259,9 +265,7 @@ func toGoType(node ast.Node) (interface{}, error) {
 		case token.BOOL:
 			return literal.Token.Value().(bool), nil
 		}
-		return nil, errors.New("unknown token type")
-	}
-	if list, ok := node.(*ast.ListType); ok {
+	} else if list, ok := node.(*ast.ListType); ok {
 		var result []interface{}
 		for _, item := range list.List {
 			nextItem, err := toGoType(item)
@@ -271,10 +275,9 @@ func toGoType(node ast.Node) (interface{}, error) {
 			result = append(result, nextItem)
 		}
 		return result, nil
-	}
-	if objectItem, ok := node.(*ast.ObjectItem); ok {
+	} else if objectItem, ok := node.(*ast.ObjectItem); ok {
 		result, err := toGoType(objectItem.Val)
 		return result, err
 	}
-	return "", nil
+	return "", errors.New("unhandled type conversion")
 }

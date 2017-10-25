@@ -2,20 +2,20 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
 	"github.com/hashicorp/hcl/hcl/printer"
-	"github.com/hashicorp/hcl/hcl/token"
 	jsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/mattolenik/hclq/query"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
+	"encoding/json"
+	"github.com/hashicorp/hcl/hcl/token"
 )
 
 // Automatically replaced when building with -ldflags="-X main.version=<version>"

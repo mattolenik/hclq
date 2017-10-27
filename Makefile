@@ -1,4 +1,4 @@
-LDFLAGS=$(shell echo -X main.version=$$(git describe --always --dirty))
+LDFLAGS=$(shell echo -X main.version=$$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
 default: build
 
 get:
@@ -9,9 +9,6 @@ build: get
 	GOOS=darwin  GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-darwin-amd64
 	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
-
-brew: get
-	GOOS=darwin  GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq
 
 install:
 	go install -ldflags="${LDFLAGS}"

@@ -52,7 +52,7 @@ Options:
   --version            Show version
 `
 	arguments, _ := docopt.Parse(usage, nil, true, version, false)
-	queryNodes := query.Parse(arguments["<nodePath>"].(string))
+	queryNodes := query.Parse(arguments["<node>"].(string))
 
 	raw := arguments["--raw"].(bool)
 	inPlace := arguments["--in-place"].(bool)

@@ -15,7 +15,7 @@ func (l *Key) Value() string {
 	return l.value
 }
 
-var keyRegex, _ = regexp.Compile(`(\w+)`)
+var keyRegex, _ = regexp.Compile(`([\w|-]+)`)
 
 func Parse(query string) []Node {
 	queryList := make([]Node, 0)

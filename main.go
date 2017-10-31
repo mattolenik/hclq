@@ -52,7 +52,7 @@ Options:
   --version            Show version
 `
 	arguments, _ := docopt.Parse(usage, nil, true, version, false)
-	queryNodes := query.Parse(arguments["<node>"].(string))
+	queryNodes, _ := query.Parse(arguments["<node>"].(string))
 
 	raw := arguments["--raw"].(bool)
 	inPlace := arguments["--in-place"].(bool)
@@ -202,8 +202,7 @@ func getImpl(node ast.Node, query []query.Node, queryIdx int) (interface{}, erro
 				return nil, nil
 			}
 			value := strings.Trim(key.Token.Text, "\"")
-			queryKey := query[queryIdx].Value()
-			if value != queryKey {
+			if !query[queryIdx].IsMatch(value) {
 				return nil, nil
 			}
 			queryIdx++
@@ -275,8 +274,7 @@ func setImpl(node ast.Node, query []query.Node, value func(original string) stri
 				return nil
 			}
 			value := strings.Trim(key.Token.Text, "\"")
-			queryKey := query[queryIdx].Value()
-			if value != queryKey {
+			if !query[queryIdx].IsMatch(value) {
 				return nil
 			}
 			queryIdx++

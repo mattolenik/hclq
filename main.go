@@ -30,17 +30,16 @@ func main() {
 HCL Query/Edit Tool
 
 Usage:
-  hclq get     [options] <node> <file>
-  hclq get     [options] <node> [-]
-  hclq set     [options] <node> <value> <file>
-  hclq set     [options] <node> <value> [-]
-  hclq append  [options] <node> <value> <file>
-  hclq append  [options] <node> <value> [-]
-  hclq prepend [options] <node> <value> <file>
-  hclq prepend [options] <node> <value> [-]
-  hclq replace [options] <node> <value> <newValue> <file>
-  hclq replace [options] <node> <value> <newValue> [-]
-
+  hclq [options] <query> get     <file>
+  hclq [options] <query> get     [-]
+  hclq [options] <query> set     <value> <file>
+  hclq [options] <query> set     <value> [-]
+  hclq [options] <query> append  <value> <file>
+  hclq [options] <query> append  <value> [-]
+  hclq [options] <query> prepend <value> <file>
+  hclq [options] <query> prepend <value> [-]
+  hclq [options] <query> replace <value> <file>
+  hclq [options] <query> replace <value> [-]
   hclq --help
   hclq --version
 
@@ -51,8 +50,8 @@ Options:
   --help               Show this screen
   --version            Show version
 `
-	arguments, _ := docopt.Parse(usage, nil, true, version, false)
-	queryNodes, _ := query.Parse(arguments["<node>"].(string))
+	arguments, _ := docopt.Parse(usage, nil, true, version, true)
+	queryNodes, _ := query.Parse(arguments["<query>"].(string))
 
 	raw := arguments["--raw"].(bool)
 	inPlace := arguments["--in-place"].(bool)
@@ -299,6 +298,52 @@ func setImpl(node ast.Node, query []query.Node, value func(original string) stri
 	}
 	if objType, ok := node.(*ast.ObjectType); ok {
 		return setImpl(objType.List, query, value, queryIdx)
+	}
+	return errors.New("unhandled case")
+}
+
+func walk(node ast.Node, query []query.Node, action func(original *string) string, queryIdx int) error {
+	if objList, ok := node.(*ast.ObjectList); ok {
+		for _, obj := range objList.Items {
+			err := walk(obj, query, action, queryIdx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if objItem, ok := node.(*ast.ObjectItem); ok {
+		queryLen := len(query)
+		for _, key := range objItem.Keys {
+			if queryIdx >= queryLen {
+				return nil
+			}
+			value := strings.Trim(key.Token.Text, "\"")
+			if !query[queryIdx].IsMatch(value) {
+				return nil
+			}
+			queryIdx++
+		}
+		// Assume a match if the for loop didn't return
+		// Assume Keys will always be len > 0
+		return walk(objItem.Val, query, action, queryIdx)
+	}
+	if literal, ok := node.(*ast.LiteralType); ok {
+		action(&literal.Token.Text)
+		return nil
+	}
+	if list, ok := node.(*ast.ListType); ok {
+		// HCL JSON parser needs a top level object
+		jsonValue := fmt.Sprintf(`{"root": %s}`, )
+		tree, err := jsonParser.Parse([]byte(jsonValue))
+		if err != nil {
+			return err
+		}
+		list.List = tree.Node.(*ast.ObjectList).Items[0].Val.(*ast.ListType).List
+		return nil
+	}
+	if objType, ok := node.(*ast.ObjectType); ok {
+		return walk(objType.List, query, action, queryIdx)
 	}
 	return errors.New("unhandled case")
 }

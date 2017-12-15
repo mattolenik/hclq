@@ -1,7 +1,0 @@
-[[constraint]]
-  name = "github.com/docopt/docopt-go"
-  version = "0.6.2"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/hashicorp/hcl"

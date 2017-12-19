@@ -8,47 +8,14 @@ import (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "hclq",
+	Use:   "hclq [flags] [command]",
 	Short: "Query and modify HashiCorp HCL files",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-	},
-	Args: cobra.ExactArgs(1),
+	Long: `hclq is a tool for querying the values of HCL files. Queries can return either single or multiple values,
+which means that hclq commands work over ALL results of the query. This allows for the retrieval and modification of
+multiple values at once.`,
 }
 
-var getCmd = &cobra.Command{
-	Use:   "get [file]",
-	Short: "retrieve matching values, from file or stdin",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
-	Args: cobra.ExactArgs(1),
-}
-
-var setCmd = &cobra.Command{
-	Use: "set <value> [--out-file | -o file] [--in-place | -i]",
-	Short: "set matching values",
-}
-
-var appendCmd = &cobra.Command{
-	Use: "append <value> [--out-file | -o out-file] [--in-place | -i]",
-	Short: "append something to matching values",
-}
-
-var prependCmd = &cobra.Command{
-	Use: "prepend <value> [--out-file | -o out-file] [--in-place | -i]",
-	Short: "prepend something to matching values",
-}
-
-var replaceCmd = &cobra.Command{
-	Use: "replace <str> <newStr> [--out-file | -o file] [--in-place | -i]",
-	Short: "perform a string replace on matching values",
-}
+var RootFlags = RootCmd.PersistentFlags()
 
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
@@ -60,9 +27,15 @@ func Execute() {
 func init() {
 	var format string
 	var outFile string
-	var inPlace bool
-	RootCmd.PersistentFlags().StringVarP(&format, "format", "f", "json", "output format, `json` or `go`, default json")
-	RootCmd.AddCommand(getCmd)
-	setCmd.Flags().StringVarP(&outFile, "out-file", "o", "", "write output to a file")
-	setCmd.Flags().BoolVarP(&inPlace, "in-place", "-i", false, "write output back to the input file, modifying it in-place")
+	var inFile string
+	var inPlace string
+	RootFlags.StringVar(&format, "fmt", "json", "output format, json or go, default json")
+	RootFlags.StringVar(&outFile, "out", "", "write output to this file, otherwise use stdout")
+	RootFlags.StringVar(&inFile, "in", "", "read input from this file, otherwise use stdin")
+	RootFlags.StringVar(&inPlace, "in-place", "", "read from this file and write changes back into it")
+	RootCmd.AddCommand(GetCmd)
+	RootCmd.AddCommand(SetCmd)
+	RootCmd.AddCommand(StrReplaceCmd)
+	RootCmd.AddCommand(PrependCmd)
+	RootCmd.AddCommand(AppendCmd)
 }

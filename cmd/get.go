@@ -80,7 +80,6 @@ func get(reader io.Reader, query []query.Node, raw bool) error {
 		return err
 	}
 
-	//fmt.Printf("literals: %+v lists: %+v", literals, lists)
 	for literal := literals.Front(); literal != nil; literal = literal.Next() {
 		output, err := getOutput(literal.Value, raw)
 		if err != nil {

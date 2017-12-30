@@ -75,11 +75,11 @@ func Walk(node ast.Node, query []query.Node, queryIdx int, action WalkAction) (b
 		// Assume Keys will always be len > 0
 		return Walk(objItem.Val, query, queryIdx, action)
 	}
-	 _, isLiteral := node.(*ast.LiteralType)
-	 _, isList := node.(*ast.ListType)
-	 if isLiteral || isList {
-		stop, err := action(node)
-		return stop, err
+	switch _ := node.(type) {
+	case *ast.ListType:
+		return action(node)
+	case *ast.LiteralType:
+		return action(node)
 	}
 	//if list, ok := node.(*ast.ListType); ok {
 		// HCL JSON parser needs a top level object

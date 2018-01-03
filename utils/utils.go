@@ -75,7 +75,7 @@ func Walk(node ast.Node, query []query.Node, queryIdx int, action WalkAction) (b
 		// Assume Keys will always be len > 0
 		return Walk(objItem.Val, query, queryIdx, action)
 	}
-	switch _ := node.(type) {
+	switch node.(type) {
 	case *ast.ListType:
 		return action(node)
 	case *ast.LiteralType:

@@ -18,20 +18,21 @@ import (
 var GetCmd = &cobra.Command{
 	Use:   "get <query>",
 	Short: "retrieve matching values",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		queryNodes, _ := query.Parse(args[0])
 		reader := os.Stdin
 		if val := cmd.Flag("in").Value.String(); val != "" {
 			var err error
 			reader, err = os.Open(val)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
 		err := get(reader, queryNodes, false)
 		if err != nil {
-			panic(err)
+			return err
 		}
+		return nil
 	},
 }
 

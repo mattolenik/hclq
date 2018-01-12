@@ -5,12 +5,15 @@ import (
 	"strings"
 )
 
-// A segment in a query string. Given 'a.b.c', a b and c are query parts
 type Node interface {
 	IsMatch(value string) bool
 }
 
 type Key struct {
+	value string
+}
+
+type List struct {
 	value string
 }
 
@@ -26,8 +29,17 @@ func (k *Key) IsMatch(value string) bool {
 	return k.value == value
 }
 
+func (l *List) IsMatch(value string) bool {
+	return l.value == value + "[]"
+}
+
+// Matches by key literal `abc`
 var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
 
+// Matches a list `abc[]`
+var listRegex, _ = regexp.Compile(`^([\w|-]+\[])`)
+
+// Matches by regex
 var regexRegex, _ = regexp.Compile(`^/((?:[^\\/]|\\.)*)/`)
 
 func Parse(query string) ([]Node, error) {
@@ -37,8 +49,6 @@ func Parse(query string) ([]Node, error) {
 	return queryList, err
 }
 
-// .simple.struct.value
-// .foo.bar.items[*]
 func parseQuery(query string, i int, queue *[]Node) error {
 	if i >= len(query) {
 		return nil
@@ -60,6 +70,19 @@ func parseQuery(query string, i int, queue *[]Node) error {
 		i += len(regexMatches[0])
 		return parseQuery(query, i, queue)
 	}
+	list := listRegex.FindString(query[i:])
+	if list != "" {
+		i += len(list)
+		newNode := &List{
+			value: list,
+		}
+		*queue = append(*queue, newNode)
+		if i >= len(query) {
+			return nil
+		}
+		return parseQuery(query, i, queue)
+	}
+
 	key := keyRegex.FindString(query[i:])
 	if key != "" {
 		i += len(key)

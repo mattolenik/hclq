@@ -2,3 +2,4 @@ vendor/
 .idea/
 dist/
 ./hclq
+test/

@@ -46,9 +46,10 @@ func ToGoType(node ast.Node) (interface{}, error) {
 	return "", errors.New("unhandled type conversion")
 }
 
-func Walk(node ast.Node, query []query.Node, queryIdx int, action WalkAction) (bool, error) {
-	if objList, ok := node.(*ast.ObjectList); ok {
-		for _, obj := range objList.Items {
+func Walk(astNode ast.Node, query []query.Node, queryIdx int, action WalkAction) (bool, error) {
+	switch node := astNode.(type) {
+	case *ast.ObjectList:
+		for _, obj := range node.Items {
 			stop, err := Walk(obj, query, queryIdx, action)
 			if err != nil {
 				return stop, err
@@ -58,28 +59,34 @@ func Walk(node ast.Node, query []query.Node, queryIdx int, action WalkAction) (b
 			}
 		}
 		return false, nil
-	}
-	if objItem, ok := node.(*ast.ObjectItem); ok {
+
+	case *ast.ObjectItem:
 		queryLen := len(query)
-		for _, key := range objItem.Keys {
+		for _, key := range node.Keys {
 			if queryIdx >= queryLen {
 				return false, nil
 			}
-			value := strings.Trim(key.Token.Text, "\"")
-			if !query[queryIdx].IsMatch(value) {
+			// TODO: Check if this trim is correct
+			if !query[queryIdx].IsMatch(strings.Trim(key.Token.Text, "\"")) {
 				return false, nil
 			}
 			queryIdx++
 		}
 		// Assume a match if the for loop didn't return
 		// Assume Keys will always be len > 0
-		return Walk(objItem.Val, query, queryIdx, action)
-	}
-	switch node.(type) {
+		return Walk(node.Val, query, queryIdx, action)
+
 	case *ast.ListType:
 		return action(node)
+
 	case *ast.LiteralType:
 		return action(node)
+
+	case *ast.ObjectType:
+		return Walk(node.List, query, queryIdx, action)
+
+	default:
+		return false, errors.New("unhandled case")
 	}
 	//if list, ok := node.(*ast.ListType); ok {
 		// HCL JSON parser needs a top level object
@@ -91,8 +98,4 @@ func Walk(node ast.Node, query []query.Node, queryIdx int, action WalkAction) (b
 		//list.List = tree.Node.(*ast.ObjectList).Items[0].Val.(*ast.ListType).List
 		//return nil
 	//}
-	if objType, ok := node.(*ast.ObjectType); ok {
-		return Walk(objType.List, query, queryIdx, action)
-	}
-	return false, errors.New("unhandled case")
 }

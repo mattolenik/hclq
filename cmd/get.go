@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"github.com/hashicorp/hcl/hcl/ast"
-	"container/list"
 )
 
 var GetCmd = &cobra.Command{
@@ -66,14 +65,19 @@ func get(reader io.Reader, query []query.Node, raw bool) error {
 	if err != nil {
 		return err
 	}
-	literals := list.New()
-	lists := list.New()
+	var results []string
+	isList := false
 	_, err = utils.Walk(node.Node, query, 0, func(n ast.Node) (stop bool, err error) {
-		if lit, ok := n.(*ast.LiteralType); ok {
-			literals.PushBack(lit.Token.Text)
-		}
-		if lst, ok := n.(*ast.ListType); ok {
-			lists.PushBack(lst.List)
+		switch node := n.(type) {
+		case *ast.LiteralType:
+			results = append(results, node.Token.Text)
+		case *ast.ListType:
+			isList = true
+			for _, item := range node.List {
+				if literal, ok := item.(*ast.LiteralType); ok {
+					results = append(results, literal.Token.Text)
+				}
+			}
 		}
 		return false, nil
 	})
@@ -81,12 +85,20 @@ func get(reader io.Reader, query []query.Node, raw bool) error {
 		return err
 	}
 
-	for literal := literals.Front(); literal != nil; literal = literal.Next() {
-		output, err := getOutput(literal.Value, raw)
+	// The return type can be a list if: the queried object IS a list, or if the query matched multiple single items
+	// So, return now if it's not a list and there is only one query result
+	if !isList && len(results) == 1 {
+		output, err := getOutput(results[0], raw)
 		if err != nil {
 			return err
 		}
 		fmt.Print(output)
+		return nil
 	}
+	output, err := getOutput(results, raw)
+	if err != nil {
+		return err
+	}
+	fmt.Print(output)
 	return nil
 }

@@ -38,7 +38,7 @@ var SetCmd = &cobra.Command{
 	},
 }
 
-func set(reader io.Reader, writer io.Writer, query []query.Node, value interface{}) error {
+func set(reader io.Reader, writer io.Writer, qry []query.Node, value interface{}) error {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func set(reader io.Reader, writer io.Writer, query []query.Node, value interface
 	if err != nil {
 		return err
 	}
-	_, err = utils.Walk(node.Node, query, 0, func(n ast.Node) (stop bool, err error) {
+	_, err = utils.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (stop bool, err error) {
 		if lit, ok := n.(*ast.LiteralType); ok {
 			lit.Token.Text = value.(string)
 		}

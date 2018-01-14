@@ -56,7 +56,7 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 	}
 }
 
-func get(reader io.Reader, query []query.Node, raw bool) error {
+func get(reader io.Reader, qry []query.Node, raw bool) error {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
@@ -67,17 +67,40 @@ func get(reader io.Reader, query []query.Node, raw bool) error {
 	}
 	var results []string
 	isList := false
-	_, err = utils.Walk(node.Node, query, 0, func(n ast.Node) (stop bool, err error) {
+	_, err = utils.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (stop bool, err error) {
 		switch node := n.(type) {
+
 		case *ast.LiteralType:
 			results = append(results, node.Token.Text)
+
 		case *ast.ListType:
+			listNode, ok := queryNode.(*query.List)
+			if !ok {
+				return false, errors.New("unexpected query type")
+			}
+			// Query is for a specific index
+			if listNode.Index != nil {
+				listLength := len(node.List)
+				listIndex := *listNode.Index
+				if listIndex >= listLength {
+					return true, fmt.Errorf("index %d out of bounds on list %s of len %d", listNode.Value, listIndex, listLength)
+				}
+				val, ok := node.List[listIndex].(*ast.LiteralType)
+				if !ok {
+					return false, err
+				}
+				results = append(results, val.Token.Text)
+				return false, nil
+			}
+			// Query is for all elements
 			isList = true
 			for _, item := range node.List {
 				if literal, ok := item.(*ast.LiteralType); ok {
 					results = append(results, literal.Token.Text)
 				}
 			}
+		default:
+			fmt.Println(node)
 		}
 		return false, nil
 	})

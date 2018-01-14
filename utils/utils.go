@@ -6,10 +6,9 @@ import (
 	"github.com/hashicorp/hcl/hcl/token"
 	//JsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/mattolenik/hclq/query"
-	"strings"
 )
 
-type WalkAction func(node ast.Node) (stop bool, err error)
+type WalkAction func(node ast.Node, queryNode query.Node) (stop bool, err error)
 
 type ErrorJSON struct {
 	Error string `json:"error"`
@@ -63,12 +62,11 @@ func Walk(astNode ast.Node, query []query.Node, queryIdx int, action WalkAction)
 	case *ast.ObjectItem:
 		queryLen := len(query)
 		for _, key := range node.Keys {
-			if queryIdx >= queryLen {
+			if !query[queryIdx].IsMatch(key.Token.Text, node.Val) {
 				return false, nil
 			}
-			// TODO: Check if this trim is correct
-			if !query[queryIdx].IsMatch(strings.Trim(key.Token.Text, "\"")) {
-				return false, nil
+			if queryIdx + 1 >= queryLen {
+				break
 			}
 			queryIdx++
 		}
@@ -77,10 +75,10 @@ func Walk(astNode ast.Node, query []query.Node, queryIdx int, action WalkAction)
 		return Walk(node.Val, query, queryIdx, action)
 
 	case *ast.ListType:
-		return action(node)
+		return action(node, query[queryIdx])
 
 	case *ast.LiteralType:
-		return action(node)
+		return action(node, query[queryIdx])
 
 	case *ast.ObjectType:
 		return Walk(node.List, query, queryIdx, action)

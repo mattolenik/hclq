@@ -16,16 +16,21 @@ var getTests = []struct {
 	expected string
 	args     Args
 }{
-	{`foo = 12`,		`"12"`, 	Args{"get", "foo"}},
-	{`foo = [12]`,		`["12"]`, 	Args{"get", "'foo[]'"}},
+	{`a = 12`,			`"12"`, 			Args{"get", "a"}},
+	{`a = [12]`,		`["12"]`, 			Args{"get", "a[]"}},
+	{`a = [12]`,		`"12"`, 			Args{"get", "a[0]"}},
+	{`a = [1, 2, 3]`,	`["1","2","3"]`, 	Args{"get", "a[]"}},
+	{`a = [1, 2, 3]`,	`"1"`, 				Args{"get", "a[0]"}},
+	{`a = [1, 2, 3]`,	`"2"`, 				Args{"get", "a[1]"}},
+	{`a = [1, 2, 3]`,	`"3"`, 				Args{"get", "a[2]"}},
 }
 
 func TestGet(t *testing.T) {
 	assert := testifyAssert.New(t)
 	for _, test := range getTests {
 		out, err := run(test.input, test.args...)
-		assert.Equal(test.expected, out)
-		assert.NoError(err)
+		assert.Equal(test.expected, out, "args: %s", test.args)
+		assert.NoError(err, "args: %s", test.args)
 	}
 }
 

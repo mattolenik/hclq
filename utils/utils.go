@@ -4,11 +4,10 @@ import (
 	"errors"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/token"
-	//JsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/mattolenik/hclq/query"
 )
 
-type WalkAction func(node ast.Node, queryNode query.Node) (stop bool, err error)
+type WalkAction func(node ast.Node, queryNode query.Node) (err error)
 
 type ErrorJSON struct {
 	Error string `json:"error"`
@@ -45,25 +44,22 @@ func ToGoType(node ast.Node) (interface{}, error) {
 	return "", errors.New("unhandled type conversion")
 }
 
-func Walk(astNode ast.Node, query []query.Node, queryIdx int, action WalkAction) (bool, error) {
+func Walk(astNode ast.Node, query []query.Node, queryIdx int, action WalkAction) (error) {
 	switch node := astNode.(type) {
 	case *ast.ObjectList:
 		for _, obj := range node.Items {
-			stop, err := Walk(obj, query, queryIdx, action)
+			err := Walk(obj, query, queryIdx, action)
 			if err != nil {
-				return stop, err
-			}
-			if stop {
-				return stop, nil
+				return err
 			}
 		}
-		return false, nil
+		return nil
 
 	case *ast.ObjectItem:
 		queryLen := len(query)
 		for _, key := range node.Keys {
 			if !query[queryIdx].IsMatch(key.Token.Text, node.Val) {
-				return false, nil
+				return nil
 			}
 			if queryIdx + 1 >= queryLen {
 				break
@@ -84,7 +80,7 @@ func Walk(astNode ast.Node, query []query.Node, queryIdx int, action WalkAction)
 		return Walk(node.List, query, queryIdx, action)
 
 	default:
-		return false, errors.New("unhandled case")
+		return errors.New("unhandled case")
 	}
 	//if list, ok := node.(*ast.ListType); ok {
 		// HCL JSON parser needs a top level object

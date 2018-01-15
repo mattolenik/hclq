@@ -14,7 +14,7 @@ dist: get
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
 test: build
-	DLV_BIN=$$GOPATH/bin/dlv HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
+	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
 debug-test-cmd: build
 	go test -c "github.com/mattolenik/hclq/cmd" -o test/cmd.test
@@ -26,4 +26,4 @@ install:
 clean:
 	rm -rf dist
 
-.PHONY: build dist clean get install test
+.PHONY: build clean debug-test-cmd dist get install test

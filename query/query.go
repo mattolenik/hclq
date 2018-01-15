@@ -41,10 +41,10 @@ func (l *List) IsMatch(key string, val ast.Node) bool {
 // Matches by key literal `abc`
 var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
 
-// Matches a list `abc[]`
+// Matches a list `abc[]` or `abc[123]`
 var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(\d*)]`)
 
-// Matches by regex
+// Matches by regex `/someRegex/`
 var regexRegex, _ = regexp.Compile(`^/((?:[^\\/]|\\.)*)/`)
 
 func Parse(query string) ([]Node, error) {

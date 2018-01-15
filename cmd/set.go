@@ -47,13 +47,13 @@ func set(reader io.Reader, writer io.Writer, qry []query.Node, value interface{}
 	if err != nil {
 		return err
 	}
-	_, err = utils.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (stop bool, err error) {
+	err = utils.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (err error) {
 		if lit, ok := n.(*ast.LiteralType); ok {
 			lit.Token.Text = value.(string)
 		}
 		//if lst, ok := n.(*ast.ListType); ok {
 		//}
-		return false, nil
+		return nil
 	})
 	if err != nil {
 		return err

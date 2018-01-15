@@ -36,9 +36,6 @@ func TestGet(t *testing.T) {
 
 func run(input string, args ...string) (string, error) {
 	hclqBin := os.Getenv("HCLQ_BIN")
-	//dlvBin := os.Getenv("DLV_BIN")
-	//args = append([]string{"--listen=:2345", "--headless=true", "--api-version=2", "exec", hclqBin}, args...)
-	//cmd := exec.Command(dlvBin, args...)
 	cmd := exec.Command(hclqBin, args...)
 	stdin, _ := cmd.StdinPipe()
 	go func() {

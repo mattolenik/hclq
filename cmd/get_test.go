@@ -1,47 +1,49 @@
 package cmd
 
-
 import (
-	"testing"
-	testifyAssert "github.com/stretchr/testify/assert"
-	"os/exec"
-	"io"
-	"os"
+    "testing"
+    testifyAssert "github.com/stretchr/testify/assert"
+    "os/exec"
+    "io"
+    "os"
+    "fmt"
 )
 
 type Args = []string
 
 var getTests = []struct {
-	input    string
-	expected string
-	args     Args
+    input    string
+    expected string
+    args     Args
+    err      error
 }{
-	{`a = 12`,			`"12"`, 			Args{"get", "a"}},
-	{`a = [12]`,		`["12"]`, 			Args{"get", "a[]"}},
-	{`a = [12]`,		`"12"`, 			Args{"get", "a[0]"}},
-	{`a = [1, 2, 3]`,	`["1","2","3"]`, 	Args{"get", "a[]"}},
-	{`a = [1, 2, 3]`,	`"1"`, 				Args{"get", "a[0]"}},
-	{`a = [1, 2, 3]`,	`"2"`, 				Args{"get", "a[1]"}},
-	{`a = [1, 2, 3]`,	`"3"`, 				Args{"get", "a[2]"}},
+    {`a = 12`,          `"12"`,           Args{"get", "a"},    nil},
+    {`a = [12]`,        `["12"]`,         Args{"get", "a[]"},  nil},
+    {`a = [12]`,        `"12"`,           Args{"get", "a[0]"}, nil},
+    {`a = [1, 2, 3]`,   `["1","2","3"]`,  Args{"get", "a[]"},  nil},
+    {`a = [1, 2, 3]`,   `"1"`,            Args{"get", "a[0]"}, nil},
+    {`a = [1, 2, 3]`,   `"2"`,            Args{"get", "a[1]"}, nil},
+    {`a = [1, 2, 3]`,   `"3"`,            Args{"get", "a[2]"}, nil},
 }
 
-func TestGet(t *testing.T) {
-	assert := testifyAssert.New(t)
-	for _, test := range getTests {
-		out, err := run(test.input, test.args...)
-		assert.Equal(test.expected, out, "args: %s", test.args)
-		assert.NoError(err, "args: %s", test.args)
-	}
-}
+func TestGet(t *testing.T) { for _, test := range getTests {
+    t.Run(fmt.Sprintf("%+v", test.args), func(tt *testing.T) {
+        assert := testifyAssert.New(tt)
 
-func run(input string, args ...string) (string, error) {
-	hclqBin := os.Getenv("HCLQ_BIN")
-	cmd := exec.Command(hclqBin, args...)
-	stdin, _ := cmd.StdinPipe()
-	go func() {
-		defer stdin.Close()
-		io.WriteString(stdin, input)
-	}()
-	out, err := cmd.Output()
-	return string(out[:]), err
+        cmd := exec.Command(os.Getenv("HCLQ_BIN"), test.args...)
+        stdin, _ := cmd.StdinPipe()
+        go func() {
+            defer stdin.Close()
+            io.WriteString(stdin, test.input)
+        }()
+        out, err := cmd.Output()
+        if err != nil {
+            tt.Fatal(err)
+        }
+        output := string(out[:])
+
+        assert.Equal(test.expected, output)
+        assert.NoError(err)
+    })
+}
 }

@@ -1,20 +1,17 @@
 LDFLAGS=$(shell echo -X main.version=$$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
-default: build
+default: test dist
 
 get:
 	go get -u github.com/golang/dep/cmd/dep
 	$$GOPATH/bin/dep ensure
-
-build: get
-	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
 
 dist: get
 	GOOS=darwin  GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-darwin-amd64
 	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
-test: build
-	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
+debug-build: get
+	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
 
 debug-test-cmd: build
 	go test -c "github.com/mattolenik/hclq/cmd" -o test/cmd.test
@@ -23,7 +20,10 @@ debug-test-cmd: build
 install:
 	go install -ldflags="${LDFLAGS}"
 
+test: debug-build
+	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
+
 clean:
 	rm -rf dist
 
-.PHONY: build clean debug-test-cmd dist get install test
+.PHONY: clean debug-build debug-test-cmd dist get install test

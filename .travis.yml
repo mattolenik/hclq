@@ -1,7 +1,7 @@
 language: go
 go:
 - 1.9
-script: make dist
+script: make
 deploy:
   provider: releases
   api_key:

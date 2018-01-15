@@ -15,17 +15,17 @@ var getTests = []struct {
     input    string
     expected string
     args     Args
-    err      error
+    errText  string
 }{
-    {`a = 12`,          `"12"`,           Args{"get", "a"},    nil},
-    {`a = [12]`,        `["12"]`,         Args{"get", "a[]"},  nil},
-    {`a = [12]`,        `"12"`,           Args{"get", "a[0]"}, nil},
-    {`a = [1, 2, 3]`,   `["1","2","3"]`,  Args{"get", "a[]"},  nil},
-    {`a = [1, 2, 3]`,   `"1"`,            Args{"get", "a[0]"}, nil},
-    {`a = [1, 2, 3]`,   `"2"`,            Args{"get", "a[1]"}, nil},
-    {`a = [1, 2, 3]`,   `"3"`,            Args{"get", "a[2]"}, nil},
-    {`a = []`,          `[]`,             Args{"get", "a[]"}, nil},
-    {`a = []`,          `[]`,             Args{"get", "a[0]"}, nil},
+    {`a = 12`,          `"12"`,           Args{"get", "a"},    ""},
+    {`a = [12]`,        `["12"]`,         Args{"get", "a[]"},  ""},
+    {`a = [12]`,        `"12"`,           Args{"get", "a[0]"}, ""},
+    {`a = [1, 2, 3]`,   `["1","2","3"]`,  Args{"get", "a[]"},  ""},
+    {`a = [1, 2, 3]`,   `"1"`,            Args{"get", "a[0]"}, ""},
+    {`a = [1, 2, 3]`,   `"2"`,            Args{"get", "a[1]"}, ""},
+    {`a = [1, 2, 3]`,   `"3"`,            Args{"get", "a[2]"}, ""},
+    {`a = []`,          `[]`,             Args{"get", "a[]"},  ""},
+    {`a = []`,          `[]`,             Args{"get", "a[0]"}, ""},
 }
 
 func TestGet(t *testing.T) { for _, test := range getTests {
@@ -38,13 +38,18 @@ func TestGet(t *testing.T) { for _, test := range getTests {
             defer stdin.Close()
             io.WriteString(stdin, test.input)
         }()
-        out, err := cmd.Output()
-        if err != nil {
-            tt.Fatal(err)
+        outBytes, err := cmd.Output()
+        output := string(outBytes[:])
+        if test.errText != "" {
+            err, ok := err.(*exec.ExitError)
+            if !ok {
+                tt.Fatalf("Expected ExitError, got %+v", err)
+            }
+            stderr := string(err.Stderr)
+            assert.Contains(stderr, test.errText)
+        } else {
+            assert.NoError(err)
         }
-        output := string(out[:])
-
         assert.Equal(test.expected, output)
-        assert.NoError(err)
     })
 }}

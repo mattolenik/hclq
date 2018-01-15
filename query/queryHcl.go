@@ -3,10 +3,10 @@ package query
 import (
 	"io"
 	"io/ioutil"
-	"github.com/mattolenik/hclq/utils"
 	"fmt"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
+	"errors"
 )
 
 type Result struct {
@@ -23,7 +23,7 @@ func QueryHcl(reader io.Reader, qry []Node) (results []Result, isList bool, err 
 	if err != nil {
 		return
 	}
-	err = utils.Walk(node.Node, qry, 0, func(n ast.Node, queryNode Node) (err error) {
+	err = Walk(node.Node, qry, 0, func(n ast.Node, queryNode Node) (err error) {
 		switch node := n.(type) {
 		case *ast.LiteralType:
 			results = append(results, Result{node.Token.Text, node})
@@ -60,4 +60,44 @@ func QueryHcl(reader io.Reader, qry []Node) (results []Result, isList bool, err 
 		return nil
 	})
 	return
+}
+
+func Walk(astNode ast.Node, query []Node, queryIdx int, action func(node ast.Node, queryNode Node) error) (error) {
+	switch node := astNode.(type) {
+	case *ast.ObjectList:
+		for _, obj := range node.Items {
+			err := Walk(obj, query, queryIdx, action)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+
+	case *ast.ObjectItem:
+		queryLen := len(query)
+		for _, key := range node.Keys {
+			if !query[queryIdx].IsMatch(key.Token.Text, node.Val) {
+				return nil
+			}
+			if queryIdx + 1 >= queryLen {
+				break
+			}
+			queryIdx++
+		}
+		// Assume a match if the for loop didn't return
+		// Assume Keys will always be len > 0
+		return Walk(node.Val, query, queryIdx, action)
+
+	case *ast.ListType:
+		return action(node, query[queryIdx])
+
+	case *ast.LiteralType:
+		return action(node, query[queryIdx])
+
+	case *ast.ObjectType:
+		return Walk(node.List, query, queryIdx, action)
+
+	default:
+		return errors.New("unhandled case")
+	}
 }

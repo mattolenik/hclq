@@ -5,7 +5,6 @@ import (
 	"io"
 	"github.com/mattolenik/hclq/query"
 	"io/ioutil"
-	"github.com/mattolenik/hclq/utils"
 	"github.com/hashicorp/hcl/hcl/parser"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"os"
@@ -47,12 +46,10 @@ func set(reader io.Reader, writer io.Writer, qry []query.Node, value interface{}
 	if err != nil {
 		return err
 	}
-	err = utils.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (err error) {
+	err = query.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (err error) {
 		if lit, ok := n.(*ast.LiteralType); ok {
 			lit.Token.Text = value.(string)
 		}
-		//if lst, ok := n.(*ast.ListType); ok {
-		//}
 		return nil
 	})
 	if err != nil {

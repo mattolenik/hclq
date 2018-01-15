@@ -6,7 +6,7 @@ import (
     "os/exec"
     "io"
     "os"
-    "fmt"
+    "strings"
 )
 
 type Args = []string
@@ -24,10 +24,12 @@ var getTests = []struct {
     {`a = [1, 2, 3]`,   `"1"`,            Args{"get", "a[0]"}, nil},
     {`a = [1, 2, 3]`,   `"2"`,            Args{"get", "a[1]"}, nil},
     {`a = [1, 2, 3]`,   `"3"`,            Args{"get", "a[2]"}, nil},
+    {`a = []`,          `[]`,             Args{"get", "a[]"}, nil},
+    {`a = []`,          `[]`,             Args{"get", "a[0]"}, nil},
 }
 
 func TestGet(t *testing.T) { for _, test := range getTests {
-    t.Run(fmt.Sprintf("%+v", test.args), func(tt *testing.T) {
+    t.Run(strings.Join(test.args, " "), func(tt *testing.T) {
         assert := testifyAssert.New(tt)
 
         cmd := exec.Command(os.Getenv("HCLQ_BIN"), test.args...)
@@ -45,5 +47,4 @@ func TestGet(t *testing.T) { for _, test := range getTests {
         assert.Equal(test.expected, output)
         assert.NoError(err)
     })
-}
-}
+}}

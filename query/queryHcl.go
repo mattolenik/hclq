@@ -1,20 +1,21 @@
 package query
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"fmt"
+
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
-	"errors"
 )
 
 type Result struct {
 	Serialized string
-	Node ast.Node
+	Node       ast.Node
 }
 
-func QueryHcl(reader io.Reader, qry []Node) (results []Result, isList bool, err error) {
+func HCL(reader io.Reader, qry []Node) (results []Result, isList bool, err error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return
@@ -62,7 +63,7 @@ func QueryHcl(reader io.Reader, qry []Node) (results []Result, isList bool, err 
 	return
 }
 
-func Walk(astNode ast.Node, query []Node, queryIdx int, action func(node ast.Node, queryNode Node) error) (error) {
+func Walk(astNode ast.Node, query []Node, queryIdx int, action func(node ast.Node, queryNode Node) error) error {
 	switch node := astNode.(type) {
 	case *ast.ObjectList:
 		for _, obj := range node.Items {
@@ -79,7 +80,7 @@ func Walk(astNode ast.Node, query []Node, queryIdx int, action func(node ast.Nod
 			if !query[queryIdx].IsMatch(key.Token.Text, node.Val) {
 				return nil
 			}
-			if queryIdx + 1 >= queryLen {
+			if queryIdx+1 >= queryLen {
 				break
 			}
 			queryIdx++

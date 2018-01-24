@@ -1,60 +1,61 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"io"
-	"github.com/mattolenik/hclq/query"
-	"io/ioutil"
-	"github.com/hashicorp/hcl/hcl/parser"
-	"github.com/hashicorp/hcl/hcl/ast"
+	"fmt"
 	"os"
-	"github.com/hashicorp/hcl/hcl/printer"
+	"reflect"
+
+	"github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/hcl/json/parser"
+	"github.com/mattolenik/hclq/query"
+	"github.com/spf13/cobra"
 )
 
+// SetCmd cobra command
 var SetCmd = &cobra.Command{
-	Use: "set <query> <value>",
-	Short: "set matching value(s)",
-	Args: cobra.ExactArgs(2),
-	Run: func(cmd *cobra.Command, args []string) {
-		queryNodes, _ := query.Parse(args[0])
+	Use:   "set <query> <valueAsJSON>",
+	Short: "set matching value(s), the new value should be valid JSON",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		queryNodes, err := query.Parse(args[0])
+		if err != nil {
+			return err
+		}
 		reader := os.Stdin
 		if val := cmd.Flag("in").Value.String(); val != "" {
 			var err error
 			reader, err = os.Open(val)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
-		writer := os.Stdout
-		if val := cmd.Flag("out").Value.String(); val != "" {
-			var err error
-			writer, err = os.Open(val)
-			if err != nil {
-				panic(err)
-			}
-		}
-		set(reader, writer, queryNodes, args[1])
-	},
-}
+		//raw := cmd.Flag("raw").Value.String() == "true"
 
-func set(reader io.Reader, writer io.Writer, qry []query.Node, value interface{}) error {
-	bytes, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-	node, err := parser.Parse(bytes)
-	if err != nil {
-		return err
-	}
-	err = query.Walk(node.Node, qry, 0, func(n ast.Node, queryNode query.Node) (err error) {
-		if lit, ok := n.(*ast.LiteralType); ok {
-			lit.Token.Text = value.(string)
+		resultPairs, isList, err := query.HCL(reader, queryNodes)
+		if isList {
+			newValue := fmt.Sprintf(`{"root":%s}`, args[1]) // parser requires `root` key
+			_, err := parser.Parse([]byte(newValue))
+			if err != nil {
+				return err
+			}
+			if len(resultPairs) != 1 {
+				return fmt.Errorf("Expected exactly 1 result when retrieving a list")
+			}
+			fmt.Println(reflect.TypeOf(resultPairs[0].Node))
+			switch node := resultPairs[0].Node.(type) {
+			case *ast.ListType:
+				for _, item := range node.List
+					switch n := item.(type) {
+					case *ast.LiteralType:
+						n.
+					}
+				}
+			}
+		}
+		results := []string{} // Requires empty slice declaration, not nil declaration
+		for _, pair := range resultPairs {
+			results = append(results, pair.Serialized)
 		}
 		return nil
-	})
-	if err != nil {
-		return err
-	}
-	printer.Fprint(writer, node)
-	return nil
+	},
 }

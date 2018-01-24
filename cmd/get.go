@@ -1,13 +1,15 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"fmt"
-	"github.com/mattolenik/hclq/query"
-	"os"
 	"encoding/json"
+	"fmt"
+	"os"
+
+	"github.com/mattolenik/hclq/query"
+	"github.com/spf13/cobra"
 )
 
+// GetCmd command
 var GetCmd = &cobra.Command{
 	Use:   "get <query>",
 	Short: "retrieve values matching <query>",
@@ -22,8 +24,8 @@ var GetCmd = &cobra.Command{
 			}
 		}
 		raw := cmd.Flag("raw").Value.String() == "true"
-		resultPairs, isList, err := query.QueryHcl(reader, queryNodes)
-		results := []string{}  // Requires empty slice declaration, not nil declaration
+		resultPairs, isList, err := query.HCL(reader, queryNodes)
+		results := []string{} // Requires empty slice declaration, not nil declaration
 		for _, pair := range resultPairs {
 			results = append(results, pair.Serialized)
 		}
@@ -49,11 +51,10 @@ var GetCmd = &cobra.Command{
 func getOutput(obj interface{}, raw bool) (string, error) {
 	if raw {
 		return fmt.Sprintf("%+v", obj), nil
-	} else {
-		jsonBody, err := json.Marshal(obj)
-		if err != nil {
-			return "", fmt.Errorf("failure while trying to serialize output to JSON")
-		}
-		return string(jsonBody), nil
 	}
+	jsonBody, err := json.Marshal(obj)
+	if err != nil {
+		return "", fmt.Errorf("failure while trying to serialize output to JSON")
+	}
+	return string(jsonBody), nil
 }

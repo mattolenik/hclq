@@ -13,6 +13,7 @@
   packages = [
     "hcl/ast",
     "hcl/parser",
+    "hcl/printer",
     "hcl/scanner",
     "hcl/strconv",
     "hcl/token",
@@ -49,12 +50,12 @@
 [[projects]]
   name = "github.com/stretchr/testify"
   packages = ["assert"]
-  revision = "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c"
-  version = "v1.2.0"
+  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
+  version = "v1.2.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "79a1a6e468dd7c92084c33d26c16e0bc064ac876b38bf746d8f6c4fb7a15656f"
+  inputs-digest = "2e09b41d48abbfbf0b6fd4731c60c1fbfe56006599dd4055f8a34b7f798c07d2"
   solver-name = "gps-cdcl"
   solver-version = 1

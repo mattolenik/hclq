@@ -15,12 +15,12 @@ type Result struct {
 	Node       ast.Node
 }
 
-func HCL(reader io.Reader, qry []Node) (results []Result, isList bool, err error) {
+func HCL(reader io.Reader, qry []Node) (results []Result, isList bool, node *ast.File, err error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return
 	}
-	node, err := parser.Parse(bytes)
+	node, err = parser.Parse(bytes)
 	if err != nil {
 		return
 	}

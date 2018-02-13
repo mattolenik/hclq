@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"reflect"
 
 	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/hashicorp/hcl/json/parser"
+	"github.com/hashicorp/hcl/hcl/printer"
+	jsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
@@ -29,33 +29,31 @@ var SetCmd = &cobra.Command{
 				return err
 			}
 		}
-		//raw := cmd.Flag("raw").Value.String() == "true"
+		newValueArg := args[1]
+		newValueJSON := fmt.Sprintf(`{"root":%s}`, newValueArg) // parser requires `root` key
 
-		resultPairs, isList, err := query.HCL(reader, queryNodes)
+		newValue, err := jsonParser.Parse([]byte(newValueJSON))
+		if err != nil {
+			return err
+		}
+		resultPairs, isList, docRoot, err := query.HCL(reader, queryNodes)
 		if isList {
-			newValue := fmt.Sprintf(`{"root":%s}`, args[1]) // parser requires `root` key
-			_, err := parser.Parse([]byte(newValue))
-			if err != nil {
-				return err
-			}
-			if len(resultPairs) != 1 {
-				return fmt.Errorf("Expected exactly 1 result when retrieving a list")
-			}
-			fmt.Println(reflect.TypeOf(resultPairs[0].Node))
-			switch node := resultPairs[0].Node.(type) {
-			case *ast.ListType:
-				for _, item := range node.List
-					switch n := item.(type) {
-					case *ast.LiteralType:
-						n.
-					}
+			for _, pair := range resultPairs {
+				list, ok := pair.Node.(*ast.ListType)
+				if !ok {
+					return fmt.Errorf("Expected ListType as query result")
 				}
+				list.List = newValue.Node.(*ast.ObjectList).Items[0].Val.(*ast.ListType).List
+			}
+		} else {
+			for _, pair := range resultPairs {
+				item, ok := pair.Node.(*ast.LiteralType)
+				if !ok {
+					return fmt.Errorf("Expected LiteralType in query results")
+				}
+				item.Token.Text = newValueArg
 			}
 		}
-		results := []string{} // Requires empty slice declaration, not nil declaration
-		for _, pair := range resultPairs {
-			results = append(results, pair.Serialized)
-		}
-		return nil
+		return printer.Fprint(os.Stdout, docRoot)
 	},
 }

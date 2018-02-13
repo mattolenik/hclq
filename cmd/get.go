@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -24,7 +23,7 @@ var GetCmd = &cobra.Command{
 			}
 		}
 		raw := cmd.Flag("raw").Value.String() == "true"
-		resultPairs, isList, err := query.HCL(reader, queryNodes)
+		resultPairs, isList, _, err := query.HCL(reader, queryNodes)
 		results := []string{} // Requires empty slice declaration, not nil declaration
 		for _, pair := range resultPairs {
 			results = append(results, pair.Serialized)
@@ -46,15 +45,4 @@ var GetCmd = &cobra.Command{
 		fmt.Print(output)
 		return err
 	},
-}
-
-func getOutput(obj interface{}, raw bool) (string, error) {
-	if raw {
-		return fmt.Sprintf("%+v", obj), nil
-	}
-	jsonBody, err := json.Marshal(obj)
-	if err != nil {
-		return "", fmt.Errorf("failure while trying to serialize output to JSON")
-	}
-	return string(jsonBody), nil
 }

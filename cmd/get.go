@@ -13,7 +13,7 @@ var GetCmd = &cobra.Command{
 	Use:   "get <query>",
 	Short: "retrieve values matching <query>",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		queryNodes, _ := query.Parse(args[0])
+		qry, _ := query.Parse(args[0])
 		reader := os.Stdin
 		if val := cmd.Flag("in").Value.String(); val != "" {
 			var err error
@@ -23,10 +23,10 @@ var GetCmd = &cobra.Command{
 			}
 		}
 		raw := cmd.Flag("raw").Value.String() == "true"
-		resultPairs, isList, _, err := query.HCL(reader, queryNodes)
-		results := []string{} // Requires empty slice declaration, not nil declaration
+		resultPairs, isList, _, err := query.HCL(reader, qry)
+		results := []interface{}{}
 		for _, pair := range resultPairs {
-			results = append(results, pair.Serialized)
+			results = append(results, pair.Value)
 		}
 		// The return type can be a list if: the queried object IS a list, or if the query matched multiple single items
 		// So, return now if it's not a list and there is only one query result
@@ -45,4 +45,10 @@ var GetCmd = &cobra.Command{
 		fmt.Print(output)
 		return err
 	},
+}
+
+func init() {
+	var raw bool
+	GetCmd.PersistentFlags().BoolVarP(&raw, "raw", "r", false, "output raw format instead of JSON")
+	RootCmd.AddCommand(GetCmd)
 }

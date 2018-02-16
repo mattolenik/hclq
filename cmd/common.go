@@ -11,7 +11,7 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 	}
 	jsonBody, err := json.Marshal(obj)
 	if err != nil {
-		return "", fmt.Errorf("failure while trying to serialize output to JSON")
+		return "", err
 	}
 	return string(jsonBody), nil
 }

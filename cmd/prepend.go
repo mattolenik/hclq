@@ -9,7 +9,7 @@ import (
 // PrependCmd cobra command
 var PrependCmd = &cobra.Command{
 	Use:   "prepend <query> <value>",
-	Short: "prepend something to query result",
+	Short: "prepend to an existing string or array",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(args)

@@ -33,15 +33,6 @@ func Execute() {
 func init() {
 	var outFile string
 	var inFile string
-	var modify bool
-	var raw bool
 	RootFlags.StringVarP(&outFile, "out", "o", "", "write output to this file, otherwise use stdout")
 	RootFlags.StringVarP(&inFile, "in", "i", "", "read input from this file, otherwise use stdin")
-	RootFlags.BoolVarP(&modify, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
-	RootFlags.BoolVarP(&raw, "raw", "r", false, "output raw format instead of JSON")
-	RootCmd.AddCommand(GetCmd)
-	RootCmd.AddCommand(SetCmd)
-	RootCmd.AddCommand(StrReplaceCmd)
-	RootCmd.AddCommand(PrependCmd)
-	RootCmd.AddCommand(AppendCmd)
 }

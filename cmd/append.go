@@ -9,7 +9,7 @@ import (
 // AppendCmd cobra command
 var AppendCmd = &cobra.Command{
 	Use:   "append <query> <value>",
-	Short: "append something to matching value(s)",
+	Short: "append to an existing string or array",
 	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(args)

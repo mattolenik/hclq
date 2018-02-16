@@ -2,13 +2,24 @@ package query
 
 import (
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
+
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
+type Query struct {
+	Parts  []Node
+	Length int
+}
+
+func (q *Query) Slice(low int) *Query {
+	return &Query{Parts: q.Parts[low:], Length: q.Length}
+}
+
 type Node interface {
 	IsMatch(key string, val ast.Node) bool
+	Key() string
 }
 
 type Key struct {
@@ -17,8 +28,8 @@ type Key struct {
 
 type List struct {
 	Value string
-	Key string
 	Index *int
+	_Key  string
 }
 
 type Regex struct {
@@ -35,8 +46,12 @@ func (k *Key) IsMatch(key string, val ast.Node) bool {
 
 func (l *List) IsMatch(key string, val ast.Node) bool {
 	_, ok := val.(*ast.ListType)
-	return ok && key == l.Key
+	return ok && key == l.Key()
 }
+
+func (l *List) Key() string  { return l._Key }
+func (k *Key) Key() string   { return k.value }
+func (r *Regex) Key() string { return "" }
 
 // Matches by key literal `abc`
 var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
@@ -47,18 +62,19 @@ var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(\d*)]`)
 // Matches by regex `/someRegex/`
 var regexRegex, _ = regexp.Compile(`^/((?:[^\\/]|\\.)*)/`)
 
-func Parse(query string) ([]Node, error) {
-	queryList := make([]Node, 0)
-	query = strings.Trim(query, "\"'")
-	err := parseQuery(query, 0, &queryList)
-	return queryList, err
+func Parse(queryString string) (*Query, error) {
+	queryString = strings.Trim(queryString, "\"'")
+	query := &Query{Parts: []Node{}}
+	err := parseQuery(queryString, 0, &query.Parts)
+	query.Length = len(query.Parts)
+	return query, err
 }
 
 func parseQuery(query string, i int, queue *[]Node) error {
 	if i >= len(query) {
 		return nil
 	}
-	char := query[i: i+1]
+	char := query[i : i+1]
 	if char == "." {
 		return parseQuery(query, i+1, queue)
 	}
@@ -81,7 +97,7 @@ func parseQuery(query string, i int, queue *[]Node) error {
 		i += len(list)
 		newNode := &List{
 			Value: list,
-			Key: listMatches[1],
+			_Key:  listMatches[1],
 		}
 		index, err := strconv.Atoi(listMatches[2])
 		if err == nil {
@@ -93,7 +109,6 @@ func parseQuery(query string, i int, queue *[]Node) error {
 		}
 		return parseQuery(query, i, queue)
 	}
-
 	key := keyRegex.FindString(query[i:])
 	if key != "" {
 		i += len(key)

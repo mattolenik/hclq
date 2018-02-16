@@ -13,9 +13,10 @@ import (
 
 // SetCmd cobra command
 var SetCmd = &cobra.Command{
-	Use:   "set <query> <valueAsJSON>",
-	Short: "set matching value(s), the new value should be valid JSON",
+	Use:   "set <query> <newValue>",
+	Short: "set matching value(s), specify a string, number, or JSON object or array",
 	Args:  cobra.ExactArgs(2),
+
 	RunE: func(cmd *cobra.Command, args []string) error {
 		queryNodes, err := query.Parse(args[0])
 		if err != nil {
@@ -56,4 +57,24 @@ var SetCmd = &cobra.Command{
 		}
 		return printer.Fprint(os.Stdout, docRoot)
 	},
+}
+
+var appendCmd = &cobra.Command{
+	Use:  "append",
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println("append cmd")
+		return nil
+	},
+}
+
+func init() {
+	var append bool
+	var prepend bool
+	var modify bool
+	SetCmd.PersistentFlags().BoolVar(&append, "append", false, "append new value(s) to existing value")
+	SetCmd.PersistentFlags().BoolVar(&prepend, "prepend", false, "prepend new value(s) to existing value")
+	SetCmd.PersistentFlags().BoolVarP(&modify, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
+	RootCmd.AddCommand(SetCmd)
+	SetCmd.AddCommand(AppendCmd)
 }

@@ -10,7 +10,7 @@ dist: get
 	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
-debug-build:
+debug-build: get
 	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
 
 debug-test-cmd: build

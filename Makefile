@@ -10,20 +10,16 @@ dist: get
 	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
-debug-build: get
+debug:
 	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
 
-debug-test-cmd: build
-	go test -c "github.com/mattolenik/hclq/cmd" -o test/cmd.test
-	dlv --listen=:2345 --headless=true --api-version=2 exec test/cmd.test
-
-install:
+install: get
 	go install -ldflags="${LDFLAGS}"
 
-test: debug-build
+test: get debug
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
 clean:
 	rm -rf dist
 
-.PHONY: clean debug-build debug-test-cmd dist get install test
+.PHONY: clean debug debug-test-cmd dist get install test

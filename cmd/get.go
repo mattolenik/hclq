@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var GetCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		qry, _ := query.Parse(args[0])
 		reader := os.Stdin
-		if val := cmd.Flag("in").Value.String(); val != "" {
+		if val := inFile; val != "" {
 			var err error
 			reader, err = os.Open(val)
 			if err != nil {
@@ -42,6 +43,7 @@ var GetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		output = strings.Trim(output, " \n")
 		fmt.Print(output)
 		return err
 	},

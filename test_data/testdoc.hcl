@@ -1,6 +1,6 @@
 foo "baz" {
 	key = 7
-	arr = [4, 5]
+	arr = [4, 2, 5]
 }
 
 foo "bar" {

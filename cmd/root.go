@@ -7,6 +7,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var outFile string
+var inFile string
+
 // RootCmd command
 var RootCmd = &cobra.Command{
 	Use:   "hclq [flags] [command]",
@@ -31,8 +34,6 @@ func Execute() {
 }
 
 func init() {
-	var outFile string
-	var inFile string
 	RootFlags.StringVarP(&outFile, "out", "o", "", "write output to this file, otherwise use stdout")
 	RootFlags.StringVarP(&inFile, "in", "i", "", "read input from this file, otherwise use stdin")
 }

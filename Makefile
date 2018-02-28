@@ -18,7 +18,7 @@ build: get
 
 cideps:
 	tar --version
-	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xJ --strip-components=1 "*/upx"
+	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xJ --wildcards --strip-components=1 "*/upx"
 
 dist: build cideps
 	[ -z "$$CI" ] || ./upx dist/*

@@ -17,7 +17,8 @@ build: get
 	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
 
 cideps:
-	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xj --strip-components=1 "*/upx"
+	tar --version
+	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xJ --strip-components=1 "*/upx"
 
 dist: build cideps
 	[ -z "$$CI" ] || ./upx dist/*

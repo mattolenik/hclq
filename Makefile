@@ -46,7 +46,7 @@ release: cideps test dist
 		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
 		shasum -a 256 dist/* > dist/hclq-${VERSION}-shasums; \
 		[ -z "$$CI" ] && printf "CI var not set, skipping publish\n" && exit 0; \
-		ghr -u "$$GITHUB_USER" -replace ${VERSION} dist/; \
+		ghr -u "$$GITHUB_USER" -r hclq ${VERSION} dist/; \
 	)
 
 test: get build

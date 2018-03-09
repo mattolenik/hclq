@@ -28,13 +28,29 @@ dist: get
 get:
 	go get -u github.com/golang/dep/cmd/dep
 	$$GOPATH/bin/dep ensure
+	# GitHub release tool
+	go get -u github.com/tcnksm/ghr
 
 install: get
 	go install -ldflags="${LDFLAGS}"
 
+brew:
+	./mo homebrew/hclq.rb.mo > homebrew/hclq.rb
+
 release: cideps test dist
+	( \
+		VERSION=${VERSION}; \
+		LINUX_FILENAME="hclq-linux-amd64"; \
+		DARWIN_FILENAME="hclq-darwin-amd64"; \
+		LINUX_HASH=$$(shasum -a 256 dist/$$LINUX_FILENAME | awk '{print $$1}'); \
+		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
+		shasum -a 256 dist/* > dist/hclq-${VERSION}-shasums; \
+		[ -z "$$CI" ] && printf "CI var not set, skipping publish\n" && exit 0; \
+		ghr -u "$$GITHUB_USER" -replace ${VERSION} dist/; \
+	)
 
 test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
+
 
 .PHONY: get dist cideps release build install test clean

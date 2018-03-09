@@ -14,7 +14,7 @@ build:
 
 cideps:
 	# Download and extract UPX
-	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xJ --wildcards --strip-components=1 "*/upx"
+	[ -n "$$CI" ] && curl -sSL ${UPX_URL} | tar xJ --wildcards --strip-components=1 "*/upx"
 
 clean:
 	rm -rf dist/ vendor/

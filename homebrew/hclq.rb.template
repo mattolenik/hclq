@@ -1,0 +1,26 @@
+require 'rbconfig'
+class Hclq < Formula
+  desc "Like jq, but for Terraform HCL"
+  homepage "https://github.com/mattolenik/hclq"
+  version "{{.Version}}"
+
+  case RbConfig::CONFIG['host_os']
+  when /darwin|mac os/
+    url "https://github.com/mattolenik/hclq/releases/download/{{.Version}}/{{.Mac64.FileName}}"
+    sha256 "{{.Mac64.Hash}}"
+  when /linux/
+    url "https://github.com/mattolenik/hclq/releases/download/{{.Version}}/{{.Linux64.FileName}}"
+    sha256 "{{.Linux64.Hash}}"
+  else
+    :unknown
+  end
+
+  def install
+    bin.install "hclq"
+  end
+
+  test do
+    system "hclq"
+  end
+
+end

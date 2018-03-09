@@ -1,38 +1,40 @@
 # Version and linker flags
-VERFLAG=$(shell echo -X main.version=$$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
-LDFLAGS=${VERFLAG} -s -w
+VERSION=$(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
+LDFLAGS=-s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
+GOOS=darwin linux windows
+GOARCH=amd64
 
 # Dependency vars
 UPX_URL=$(shell curl -sL https://api.github.com/repos/upx/upx/releases/latest | grep -e "browser_download_url.*amd64_linux" | awk -F'"' '{print $$4}')
 
-default: test dist
+default: test build
+
+build:
+	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
+
+cideps:
+	# Download and extract UPX
+	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xJ --wildcards --strip-components=1 "*/upx"
+
+clean:
+	rm -rf dist/ vendor/
+
+dist: get
+	set -v; for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -i -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
+	# Remove binary used for testing
+	rm dist/hclq
+	[ -n "$$CI" ] && ./upx dist/* || upx dist/*
 
 get:
 	go get -u github.com/golang/dep/cmd/dep
 	$$GOPATH/bin/dep ensure
 
-build: get
-	GOOS=darwin  GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-darwin-amd64
-	GOOS=linux   GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-linux-amd64
-	GOOS=windows GOARCH=amd64 go build -i -ldflags="${LDFLAGS}" -o dist/hclq-windows-amd64
-
-cideps:
-	tar --version
-	[ -z "$$CI" ] || curl -sSL ${UPX_URL} | tar xJ --wildcards --strip-components=1 "*/upx"
-
-dist: build cideps
-	[ -z "$$CI" ] || ./upx dist/*
-
-debug:
-	go build -i -gcflags='-N -l' -o dist/hclq
-
 install: get
 	go install -ldflags="${LDFLAGS}"
 
-test: get debug
+release: cideps test dist
+
+test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
-clean:
-	rm -rf dist
-
-.PHONY: clean debug debug-test-cmd dist get install test
+.PHONY: get dist cideps release build install test clean

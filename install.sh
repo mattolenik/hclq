@@ -78,7 +78,7 @@ main() {
   curl ${quiet+--silent} --progress-bar -JLo "$hclq_bin" "$hclq_url"
   chmod +x "$hclq_bin"
 
-  println "$hclq_bin now at version $(hclq_bin --version)"
+  println "$hclq_bin now at version $("$hclq_bin" --version)"
 }
 
 main "$@"

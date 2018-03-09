@@ -1,6 +1,7 @@
 #!/bin/sh
 # Installs or upgrades hclq, by default installing into /usr/local/bin
-# This can be overridden by passing a directory as the first parameter.
+# This can be overridden with the -d parameter
+# Use -q for quiet output
 set -e
 
 E_NO_OS=3

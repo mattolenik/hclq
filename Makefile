@@ -37,7 +37,7 @@ install: get
 brew:
 	./mo homebrew/hclq.rb.mo > homebrew/hclq.rb
 
-release: cideps test dist
+release: cideps test dist brew
 	( \
 		VERSION=${VERSION}; \
 		LINUX_FILENAME="hclq-linux-amd64"; \
@@ -53,4 +53,4 @@ test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
 
-.PHONY: get dist cideps release build install test clean
+.PHONY: brew get dist cideps release build install test clean

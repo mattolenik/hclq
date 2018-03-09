@@ -46,7 +46,7 @@ publish: cideps test dist brew
 		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
 		shasum -a 256 dist/* > dist/hclq-shasums; \
 		if [ -n "$$TRAVIS_TAG" ]; then \
-			ghr -u "$$GITHUB_USER" "$$TRAVIS_TAG" dist/; \
+			ghr -u "$$GITHUB_USER" ${VERSION} dist/; \
 		fi; \
 	)
 

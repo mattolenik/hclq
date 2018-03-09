@@ -76,7 +76,7 @@ main() {
   hclq_url=$(printf '%s' "$latest" | grep -i "browser_download_url.*$os" | awk -F'"' '{print $4}')
   # Only include --silent argument if quiet is defined
   curl ${quiet+--silent} --progress-bar -JLo "$hclq_bin" "$hclq_url"
-  chmod +x "hclq_bin"
+  chmod +x "$hclq_bin"
 
   println "$hclq_bin now at version $(hclq_bin --version)"
 }

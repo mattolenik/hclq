@@ -44,9 +44,9 @@ release: cideps test dist
 		DARWIN_FILENAME="hclq-darwin-amd64"; \
 		LINUX_HASH=$$(shasum -a 256 dist/$$LINUX_FILENAME | awk '{print $$1}'); \
 		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
-		shasum -a 256 dist/* > dist/hclq-${VERSION}-shasums; \
+		shasum -a 256 dist/* > dist/hclq-shasums; \
 		[ -z "$$CI" ] && printf "CI var not set, skipping publish\n" && exit 0; \
-		ghr -u "$$GITHUB_USER" -r hclq ${VERSION} dist/; \
+		ghr ${VERSION} dist/; \
 	)
 
 test: get build

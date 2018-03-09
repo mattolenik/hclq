@@ -45,8 +45,9 @@ publish: cideps test dist brew
 		LINUX_HASH=$$(shasum -a 256 dist/$$LINUX_FILENAME | awk '{print $$1}'); \
 		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
 		shasum -a 256 dist/* > dist/hclq-shasums; \
-		[ -z "$$CI" ] && printf "CI var not set, skipping publish\n" && exit 0; \
-		[ -n "$$TRAVIS_TAG" ] && ghr -u "$$GITHUB_USER" ${VERSION} dist/; \
+		if [ -n "$$TRAVIS_TAG" ]; then \
+			ghr -u "$$GITHUB_USER" "$$TRAVIS_TAG" dist/; \
+		fi; \
 	)
 
 test: get build

@@ -6,6 +6,10 @@ hclq is a command line tool for querying and manipulating [HashiCorp HCL](https:
 
 ## Installation
 
+hclq is distributed as a single binary for Linux, macOS, and Windows. For now, an automated install and update script is provided. Brew support is planned in the future.
+
+$ `curl -sL https://install.hclq.sh | sh`
+
 ## Examples
 
 ### Getting Values

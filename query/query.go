@@ -22,26 +22,56 @@ type Node interface {
 	Key() string
 }
 
+type IndexedNode interface {
+	IsMatch(key string, val ast.Node) bool
+	Key() string
+	Index() *int
+}
+
 type Key struct {
 	value string
 }
 
 type List struct {
-	Value string
-	Index *int
-	_Key  string
+	value string
+	index *int
+	key   string
 }
 
 type Regex struct {
 	pattern *regexp.Regexp
+	index   *int
+}
+
+type Wildcard struct {
+}
+
+func (w *Wildcard) IsMatch(key string, val ast.Node) bool {
+	return true
+}
+
+func (w *Wildcard) Key() string {
+	return "*"
 }
 
 func (r *Regex) IsMatch(key string, val ast.Node) bool {
 	return r.pattern.MatchString(key)
 }
 
+func (r *Regex) Key() string {
+	return ""
+}
+
+func (r *Regex) Index() *int {
+	return r.index
+}
+
 func (k *Key) IsMatch(key string, val ast.Node) bool {
 	return k.value == key
+}
+
+func (k *Key) Key() string {
+	return k.value
 }
 
 func (l *List) IsMatch(key string, val ast.Node) bool {
@@ -49,9 +79,13 @@ func (l *List) IsMatch(key string, val ast.Node) bool {
 	return ok && key == l.Key()
 }
 
-func (l *List) Key() string  { return l._Key }
-func (k *Key) Key() string   { return k.value }
-func (r *Regex) Key() string { return "" }
+func (l *List) Key() string {
+	return l.key
+}
+
+func (l *List) Index() *int {
+	return l.index
+}
 
 // Matches by key literal `abc`
 var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
@@ -59,8 +93,8 @@ var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
 // Matches a list `abc[]` or `abc[123]`
 var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(\d*)]`)
 
-// Matches by regex `/someRegex/`
-var regexRegex, _ = regexp.Compile(`^/((?:[^\\/]|\\.)*)/`)
+// Matches by regex `/someRegex/` with optional indexer, e.g. `/someRegex/[]`
+var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/\[(\d*)]?`)
 
 func Parse(queryString string) (*Query, error) {
 	queryString = strings.Trim(queryString, "\"'")
@@ -78,6 +112,11 @@ func parseQuery(query string, i int, queue *[]Node) error {
 	if char == "." {
 		return parseQuery(query, i+1, queue)
 	}
+	if char == "*" {
+		newNode := &Wildcard{}
+		*queue = append(*queue, newNode)
+		return parseQuery(query, i+1, queue)
+	}
 	regexMatches := regexRegex.FindStringSubmatch(query[i:])
 	if len(regexMatches) > 1 {
 		pattern, err := regexp.Compile(regexMatches[1])
@@ -86,6 +125,10 @@ func parseQuery(query string, i int, queue *[]Node) error {
 		}
 		newNode := &Regex{
 			pattern: pattern,
+		}
+		index, err := strconv.Atoi(regexMatches[1])
+		if err == nil {
+			newNode.index = &index
 		}
 		*queue = append(*queue, newNode)
 		i += len(regexMatches[0])
@@ -96,12 +139,12 @@ func parseQuery(query string, i int, queue *[]Node) error {
 		list := listMatches[0]
 		i += len(list)
 		newNode := &List{
-			Value: list,
-			_Key:  listMatches[1],
+			value: list,
+			key:   listMatches[1],
 		}
 		index, err := strconv.Atoi(listMatches[2])
 		if err == nil {
-			newNode.Index = &index
+			newNode.index = &index
 		}
 		*queue = append(*queue, newNode)
 		if i >= len(query) {

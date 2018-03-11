@@ -61,7 +61,7 @@ var AppendCmd = &cobra.Command{
 				list.List = append(list.List, node)
 				return nil
 			}, func(tok *token.Token) error {
-				tok.Text += newValue
+				tok.Text = `"` + trimToken(tok.Text) + newValue + `"`
 				tok.Type = token.STRING
 				return nil
 			})
@@ -85,6 +85,7 @@ var PrependCmd = &cobra.Command{
 				list.List = append(node.(*ast.ListType).List, list.List...)
 				return nil
 			}, func(tok *token.Token) error {
+				tok.Text = `"` + newValue + trimToken(tok.Text) + `"`
 				tok.Text = newValue + tok.Text
 				tok.Type = token.STRING
 				return nil
@@ -102,11 +103,15 @@ var ReplaceCmd = &cobra.Command{
 			func(list *ast.ListType) error {
 				panic("Not implemented")
 			}, func(tok *token.Token) error {
-				tok.Text = strings.Replace(tok.Text, args[1], args[2], replaceN)
+				tok.Text = `"` + strings.Replace(trimToken(tok.Text), args[1], args[2], replaceN) + `"`
 				tok.Type = token.STRING
 				return nil
 			})
 	},
+}
+
+func trimToken(tok string) string {
+	return strings.Trim(tok, `"`)
 }
 
 func getTokenType(val string) token.Type {

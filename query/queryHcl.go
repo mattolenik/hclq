@@ -31,14 +31,14 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 			results = append(results, Result{node.Token.Value(), node})
 
 		case *ast.ListType:
-			listNode, ok := queryNode.(*List)
+			listNode, ok := queryNode.(IndexedNode)
 			if !ok {
 				return fmt.Errorf("unexpected query type")
 			}
 			// Query is for a specific index
-			if listNode.Index != nil {
+			if listNode.Index() != nil {
 				listLength := len(node.List)
-				listIndex := *listNode.Index
+				listIndex := *listNode.Index()
 				if listIndex >= listLength {
 					return fmt.Errorf("index %d out of bounds on list %+v of len %d", listIndex, listNode.Key(), listLength)
 				}
@@ -69,6 +69,7 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 func Walk(astNode ast.Node, query *Query, action func(node ast.Node, queryNode Node) error) error {
 	return walkImpl(astNode, query, 0, action)
 }
+
 func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Node, queryNode Node) error) error {
 	switch node := astNode.(type) {
 	case *ast.ObjectList:
@@ -82,7 +83,8 @@ func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Nod
 
 	case *ast.ObjectItem:
 		for _, key := range node.Keys {
-			if !query.Parts[qIdx].IsMatch(strings.Trim(key.Token.Text, `"`), node.Val) {
+			isMatch := query.Parts[qIdx].IsMatch(strings.Trim(key.Token.Text, `"`), node.Val)
+			if !isMatch {
 				return nil
 			}
 			if qIdx+1 >= query.Length {

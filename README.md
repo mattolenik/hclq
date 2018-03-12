@@ -14,7 +14,7 @@ Use cases include:
 
 hclq outputs JSON for easy processing with other tools.
 
-Note: hclq should be considered alpha software at this stage
+Note: hclq should be considered alpha software at this time.
 
 # Installation
 

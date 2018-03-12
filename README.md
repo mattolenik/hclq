@@ -2,7 +2,7 @@
 
 # About
 
-hclq is a command line tool for querying and manipulating [HashiCorp HCL](https://github.com/hashicorp/hcl) files, such as those used by [Terraform](https://terraform.io). It's similar to [jq](https://github.com/stedolan/jq), but for HCL. In addition to retrieving values, hclq can also modify values.
+hclq is a command line tool for querying and manipulating [HashiCorp HCL](https://github.com/hashicorp/hcl) files, such as those used by [Terraform](https://terraform.io) and other. It's similar to [jq](https://github.com/stedolan/jq), but for HCL. It can also modify HCL, with the option of modifying files in-place.
 
 Use cases include:
 
@@ -10,9 +10,11 @@ Use cases include:
  * Enforce rules, naming conventions, etc
  * Preprocessing to compensate for HCL interpolation shortcomings
  * Custom manipulation for wrappers or other utilities
- * Anywhere that using grep and sed just isn't enough
+ * A robust alternative to parsing files with grep, sed, etc
 
 hclq outputs JSON for easy processing with other tools.
+
+Note: hclq should be considered alpha software at this stage
 
 # Installation
 
@@ -26,11 +28,13 @@ Install with Go:
 
 Or download a release from GitHub. More info on the script is down below.
 
+# Examples
+
 ## Getting Values
 
 Let's try getting and setting some values from a simple document, we'll refer to it as `example.tf`. All output is JSON.
 
-```
+```sh
 data "foo" {
   bin = [1, 2, 3]
 
@@ -46,7 +50,7 @@ data "baz" {
 
 Let's say we want the value of `bar` from the `foo` object. The result is printed as a plain string.
 
-```
+```sh
 $ cat example.tf | hclq get 'data.foo.bar'
 
 "foo string"
@@ -56,7 +60,7 @@ $ cat example.tf | hclq get 'data.foo.bar'
 
 For a list, append `[]` to tell hclq to look for lists, otherwise it'll try to find single items:
 
-```
+```sh
 $ cat example.tf | hclq get 'data.foo.bin[]'
 
 [1,2,3]
@@ -66,7 +70,7 @@ $ cat example.tf | hclq get 'data.foo.bin[]'
 
 hclq can match across many objects and return combined results. Use the wildcard `*` to match any key:
 
-```
+```sh
 $ cat example.tf | hclq get 'data.*.bar'
 
 ["foo string","baz string"]
@@ -76,7 +80,7 @@ $ cat example.tf | hclq get 'data.*.bar'
 
 hclq can also edit HCL documents. Simply form a query just like with `get`, but also provide a new value. Anything that matches the query will get set to the new value. In other words, anything that would be returned by `get`, will also be affected by `set`. For example:
 
-```
+```sh
 $ cat example.tf | hclq set 'data.*.bar' "new string"
 
 data "foo" {
@@ -96,7 +100,7 @@ data "baz" {
 
 It works on lists, too:
 
-```
+```sh
 $ cat example.tf | hclq set 'data.*.bin[]' "[10, 11]"
 
 data "foo" {
@@ -131,3 +135,10 @@ The script can take two flags: `-q` for quiet mode, and `-d` to set the installa
 The following quietly installs hclq into /usr/bin/
 
 `curl -sL https://install.hclq.sh | sh -s -- -q -d /usr/bin`
+
+
+## Project Status
+
+hclq should be considered alpha software and not suitable for production. If you really feel the need for it, snap to a specific release and be sure to test your use cases thoroughly.
+
+There's still trouble with some of the list processing, and full objects are not yet supported. More tests are needed, especially for the set commands.

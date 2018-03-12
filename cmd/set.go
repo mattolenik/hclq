@@ -37,7 +37,7 @@ var SetCmd = &cobra.Command{
 				list.List = hcl.(*ast.ListType).List
 				return nil
 			}, func(tok *token.Token) error {
-				tok.Text = newValue
+				tok.Text = `"` + newValue + `"`
 				tok.Type = getTokenType(newValue)
 				return nil
 			})
@@ -86,7 +86,6 @@ var PrependCmd = &cobra.Command{
 				return nil
 			}, func(tok *token.Token) error {
 				tok.Text = `"` + newValue + trimToken(tok.Text) + `"`
-				tok.Text = newValue + tok.Text
 				tok.Type = token.STRING
 				return nil
 			})

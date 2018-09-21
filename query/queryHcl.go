@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/hcl/hcl/parser"
 )
 
-type Result struct {
-	Value interface{}
-	Node  ast.Node
+type Results struct {
+	Values []interface{}
+	Node   ast.Node
 }
 
-func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast.File, err error) {
+func HCL(reader io.Reader, qry *Query) (results Results, isList bool, node *ast.File, err error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return
@@ -28,7 +28,8 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 	err = Walk(node.Node, qry, func(n ast.Node, queryNode Node) (err error) {
 		switch node := n.(type) {
 		case *ast.LiteralType:
-			results = append(results, Result{node.Token.Value(), node})
+			results.Node = node
+			results.Values = append(results.Values, node.Token.Value())
 
 		case *ast.ListType:
 			listNode, ok := queryNode.(IndexedNode)
@@ -46,14 +47,16 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 				if !ok {
 					return err
 				}
-				results = append(results, Result{val.Token.Value(), node})
+				results.Node = node
+				results.Values = append(results.Values, val.Token.Value())
 				return nil
 			}
 			// Query is for all elements
 			isList = true
+			results.Node = node
 			for _, item := range node.List {
 				if literal, ok := item.(*ast.LiteralType); ok {
-					results = append(results, Result{literal.Token.Value(), node})
+					results.Values = append(results.Values, literal.Token.Value())
 				}
 			}
 		// TODO: full objects

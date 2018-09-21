@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/LudovicTOURMAN/hclq/query"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/hashicorp/hcl/hcl/token"
 	jsonParser "github.com/hashicorp/hcl/json/parser"
-	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
 
@@ -159,21 +159,17 @@ func setImpl(
 	}
 	resultPairs, isList, docRoot, err := query.HCL(reader, queryNodes)
 	if isList {
-		for _, pair := range resultPairs {
-			list, ok := pair.Node.(*ast.ListType)
-			if !ok {
-				return fmt.Errorf("Expected ListType as query result")
-			}
-			listAction(list)
+		list, ok := resultPairs.Node.(*ast.ListType)
+		if !ok {
+			return fmt.Errorf("Expected ListType as query result")
 		}
+		listAction(list)
 	} else {
-		for _, pair := range resultPairs {
-			item, ok := pair.Node.(*ast.LiteralType)
-			if !ok {
-				return fmt.Errorf("Expected LiteralType in query results")
-			}
-			valueAction(&item.Token)
+		item, ok := resultPairs.Node.(*ast.LiteralType)
+		if !ok {
+			return fmt.Errorf("Expected LiteralType in query results")
 		}
+		valueAction(&item.Token)
 	}
 
 	writer := os.Stdout

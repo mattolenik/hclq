@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/LudovicTOURMAN/hclq/query"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/hashicorp/hcl/hcl/token"
 	jsonParser "github.com/hashicorp/hcl/json/parser"
+	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
 

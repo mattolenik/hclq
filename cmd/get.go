@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/LudovicTOURMAN/hclq/query"
+	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
 

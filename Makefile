@@ -34,10 +34,7 @@ get:
 install: get
 	go install -ldflags="${LDFLAGS}"
 
-brew:
-	./mo homebrew/hclq.rb.mo > homebrew/hclq.rb
-
-publish: cideps test dist brew
+publish: cideps test dist
 	( \
 		VERSION=${VERSION}; \
 		LINUX_FILENAME="hclq-linux-amd64"; \
@@ -54,4 +51,4 @@ test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
 
-.PHONY: brew get dist cideps publish build install test clean
+.PHONY: get dist cideps publish build install test clean

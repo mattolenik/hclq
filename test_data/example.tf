@@ -12,10 +12,12 @@ data "baz" {
 
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
+  id = "main-vpc"
 }
 
 resource "aws_vpc" "dev" {
   cidr_block = "10.0.0.0/16"
+  id = "dev-vpc"
 }
 
 data "aws_vpc" "precreated1" {

@@ -91,7 +91,7 @@ func (l *List) Index() *int {
 var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
 
 // Matches a list `abc[]` or `abc[123]`
-var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(\d*)]`)
+var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(-?\d*)]`)
 
 // Matches by regex `/someRegex/` with optional indexer, e.g. `/someRegex/[]`
 var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/\[(\d*)]?`)

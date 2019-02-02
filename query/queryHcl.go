@@ -11,11 +11,13 @@ import (
 	"github.com/hashicorp/hcl/hcl/parser"
 )
 
+// Result represents a query result
 type Result struct {
 	Value interface{}
 	Node  ast.Node
 }
 
+// HCL performs a generic query and returns matching results
 func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast.File, err error) {
 	bytes, err := ioutil.ReadAll(reader)
 	if err != nil {
@@ -25,9 +27,16 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 	if err != nil {
 		return
 	}
-	err = Walk(node.Node, qry, func(n ast.Node, queryNode Node) (err error) {
+	err = walk(node.Node, qry, func(n ast.Node, queryNode Node) (err error) {
 		switch node := n.(type) {
 		case *ast.LiteralType:
+			switch queryNode.(type) {
+			case Node:
+			case IndexedNode:
+				return fmt.Errorf("Invalid query, '%s', matching item is not an array", queryNode.Key())
+			default:
+				return fmt.Errorf("Query format '%s' not understood", queryNode.Key())
+			}
 			results = append(results, Result{node.Token.Value(), node})
 
 		case *ast.ListType:
@@ -39,7 +48,12 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 			if listNode.Index() != nil {
 				listLength := len(node.List)
 				listIndex := *listNode.Index()
-				if listIndex >= listLength {
+
+				// Negative index means wrap around, with -1 being the last element
+				if listIndex < 0 {
+					listIndex = listLength + listIndex
+				}
+				if listIndex < 0 || listIndex >= listLength {
 					return fmt.Errorf("index %d out of bounds on list %+v of len %d", listIndex, listNode.Key(), listLength)
 				}
 				val, ok := node.List[listIndex].(*ast.LiteralType)
@@ -66,7 +80,7 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 	return
 }
 
-func Walk(astNode ast.Node, query *Query, action func(node ast.Node, queryNode Node) error) error {
+func walk(astNode ast.Node, query *Query, action func(node ast.Node, queryNode Node) error) error {
 	return walkImpl(astNode, query, 0, action)
 }
 
@@ -92,8 +106,8 @@ func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Nod
 			}
 			qIdx++
 		}
-		// Assume a match if the for loop didn't return
-		// Assume Keys will always be len > 0
+		// Assume a match if return didn't happen in the for loop.
+		// Assume Keys will always be len > 0 (it wouldn't be valid HCL otherwise)
 		return walkImpl(node.Val, query, qIdx, action)
 
 	case *ast.ListType:

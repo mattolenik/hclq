@@ -9,3 +9,19 @@ data "baz" {
 
   bar = "baz string"
 }
+
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_vpc" "dev" {
+  cidr_block = "10.0.0.0/16"
+}
+
+data "aws_vpc" "precreated1" {
+  id = "some-vpc-id-1"
+}
+
+data "aws_vpc" "other2" {
+  id = "some-vpc-id-2"
+}

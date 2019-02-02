@@ -25,6 +25,9 @@ var GetCmd = &cobra.Command{
 		}
 		raw := cmd.Flag("raw").Value.String() == "true"
 		resultPairs, isList, _, err := query.HCL(reader, qry)
+		if err != nil {
+			return err
+		}
 		results := []interface{}{}
 		for _, pair := range resultPairs {
 			results = append(results, pair.Value)

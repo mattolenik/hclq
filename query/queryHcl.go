@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	//"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
 )
@@ -27,16 +28,9 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 	if err != nil {
 		return
 	}
-	err = walk(node.Node, qry, func(n ast.Node, queryNode Node) (err error) {
+	err = walk(node.Node, qry, 0, func(n ast.Node, queryNode Node) (err error) {
 		switch node := n.(type) {
 		case *ast.LiteralType:
-			switch queryNode.(type) {
-			case Node:
-			case IndexedNode:
-				return fmt.Errorf("Invalid query, '%s', matching item is not an array", queryNode.Key())
-			default:
-				return fmt.Errorf("Query format '%s' not understood", queryNode.Key())
-			}
 			results = append(results, Result{node.Token.Value(), node})
 
 		case *ast.ListType:
@@ -80,15 +74,11 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 	return
 }
 
-func walk(astNode ast.Node, query *Query, action func(node ast.Node, queryNode Node) error) error {
-	return walkImpl(astNode, query, 0, action)
-}
-
-func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Node, queryNode Node) error) error {
+func walk(astNode ast.Node, query *Query, qIdx int, action func(node ast.Node, queryNode Node) error) error {
 	switch node := astNode.(type) {
 	case *ast.ObjectList:
 		for _, obj := range node.Items {
-			err := walkImpl(obj, query, qIdx, action)
+			err := walk(obj, query, qIdx, action)
 			if err != nil {
 				return err
 			}
@@ -97,7 +87,11 @@ func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Nod
 
 	case *ast.ObjectItem:
 		for _, key := range node.Keys {
-			isMatch := query.Parts[qIdx].IsMatch(strings.Trim(key.Token.Text, `"`), node.Val)
+			part := query.Parts[qIdx]
+			isMatch, err := part.IsMatch(strings.Trim(key.Token.Text, `"`), node.Val)
+			if err != nil {
+				return err
+			}
 			if !isMatch {
 				return nil
 			}
@@ -108,7 +102,7 @@ func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Nod
 		}
 		// Assume a match if return didn't happen in the for loop.
 		// Assume Keys will always be len > 0 (it wouldn't be valid HCL otherwise)
-		return walkImpl(node.Val, query, qIdx, action)
+		return walk(node.Val, query, qIdx, action)
 
 	case *ast.ListType:
 		return action(node, query.Parts[qIdx])
@@ -117,7 +111,7 @@ func walkImpl(astNode ast.Node, query *Query, qIdx int, action func(node ast.Nod
 		return action(node, query.Parts[qIdx])
 
 	case *ast.ObjectType:
-		return walkImpl(node.List, query, qIdx, action)
+		return walk(node.List, query, qIdx, action)
 
 	default:
 		return errors.New("unhandled case")

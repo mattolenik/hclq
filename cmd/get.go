@@ -48,7 +48,7 @@ var GetCmd = &cobra.Command{
 		}
 		output = strings.Trim(output, " \n")
 		fmt.Print(output)
-		return err
+		return nil
 	},
 }
 

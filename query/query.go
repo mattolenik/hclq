@@ -1,6 +1,7 @@
 package query
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,12 +19,12 @@ func (q *Query) Slice(low int) *Query {
 }
 
 type Node interface {
-	IsMatch(key string, val ast.Node) bool
+	IsMatch(key string, val ast.Node) (bool, error)
 	Key() string
 }
 
 type IndexedNode interface {
-	IsMatch(key string, val ast.Node) bool
+	IsMatch(key string, val ast.Node) (bool, error)
 	Key() string
 	Index() *int
 }
@@ -46,16 +47,16 @@ type Regex struct {
 type Wildcard struct {
 }
 
-func (w *Wildcard) IsMatch(key string, val ast.Node) bool {
-	return true
+func (w *Wildcard) IsMatch(key string, val ast.Node) (bool, error) {
+	return true, nil
 }
 
 func (w *Wildcard) Key() string {
 	return "*"
 }
 
-func (r *Regex) IsMatch(key string, val ast.Node) bool {
-	return r.pattern.MatchString(key)
+func (r *Regex) IsMatch(key string, val ast.Node) (bool, error) {
+	return r.pattern.MatchString(key), nil
 }
 
 func (r *Regex) Key() string {
@@ -66,17 +67,30 @@ func (r *Regex) Index() *int {
 	return r.index
 }
 
-func (k *Key) IsMatch(key string, val ast.Node) bool {
-	return k.value == key
+func (k *Key) IsMatch(key string, val ast.Node) (bool, error) {
+	if key == k.value {
+		_, isList := val.(*ast.ListType)
+		if isList {
+			return true, fmt.Errorf("Key '%s' found but is of wrong type, query requested key/literal, found list", key)
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 func (k *Key) Key() string {
 	return k.value
 }
 
-func (l *List) IsMatch(key string, val ast.Node) bool {
-	_, ok := val.(*ast.ListType)
-	return ok && key == l.Key()
+func (l *List) IsMatch(key string, val ast.Node) (bool, error) {
+	if key == l.Key() {
+		_, ok := val.(*ast.ListType)
+		if !ok {
+			return false, fmt.Errorf("Key '%s' found but is of wrong type, query requested list", key)
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 func (l *List) Key() string {

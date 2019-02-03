@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -56,7 +57,9 @@ func TestGet(t *testing.T) {
 			} else {
 				assert.NoError(err)
 			}
-			assert.Equal(test.expected, output)
+			// Actual program output includes a newline
+			expected := fmt.Sprintf("%s\n", test.expected)
+			assert.Equal(expected, output)
 		})
 	}
 }

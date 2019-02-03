@@ -6,6 +6,7 @@ foo "baz" {
 foo "bar" {
 	key = 12
 	arr = [1, 2, 3]
+	empty = []
 
 	obj {
 		a = "abc"

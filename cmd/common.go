@@ -3,6 +3,8 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
 
@@ -24,4 +26,22 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 		return "", err
 	}
 	return string(jsonBody), nil
+}
+
+// getInputReader provides an os.Reader reading from either a file or stdin,
+// depending on whether or not an input file was specified.
+func getInputReader() (io.Reader, error) {
+	if val := inFile; val != "" {
+		reader, err := os.Open(val)
+		if err != nil {
+			return nil, err
+		}
+		return reader, nil
+	}
+	return os.Stdin, nil
+}
+
+func failExit(err error) {
+	fmt.Fprintln(os.Stderr, err.Error())
+	os.Exit(1)
 }

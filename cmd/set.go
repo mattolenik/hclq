@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/hashicorp/hcl/hcl/token"
 	jsonParser "github.com/hashicorp/hcl/json/parser"
+	"github.com/mattolenik/hclq/hcl"
 	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
@@ -157,7 +158,7 @@ func setImpl(
 			return err
 		}
 	}
-	resultPairs, isList, docRoot, err := query.HCL(reader, queryNodes)
+	resultPairs, isList, docRoot, err := hcl.Query(reader, queryNodes)
 	if isList {
 		for _, pair := range resultPairs {
 			list, ok := pair.Node.(*ast.ListType)

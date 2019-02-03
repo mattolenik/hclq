@@ -9,21 +9,22 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-type Query struct {
-	Parts  []Node
+// Breadcrumbs represents the dot.style.query that the user passes in.
+type Breadcrumbs struct {
+	Parts  []Crumb
 	Length int
 }
 
-func (q *Query) Slice(low int) *Query {
-	return &Query{Parts: q.Parts[low:], Length: q.Length}
+func (q *Breadcrumbs) Slice(low int) *Breadcrumbs {
+	return &Breadcrumbs{Parts: q.Parts[low:], Length: q.Length}
 }
 
-type Node interface {
+type Crumb interface {
 	IsMatch(key string, val ast.Node) (bool, error)
 	Key() string
 }
 
-type IndexedNode interface {
+type IndexedCrumb interface {
 	IsMatch(key string, val ast.Node) (bool, error)
 	Key() string
 	Index() *int
@@ -110,26 +111,26 @@ var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(-?\d*)]`)
 // Matches by regex `/someRegex/` with optional indexer, e.g. `/someRegex/[]`
 var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/\[(\d*)]?`)
 
-func Parse(queryString string) (*Query, error) {
+func Parse(queryString string) (*Breadcrumbs, error) {
 	queryString = strings.Trim(queryString, "\"'")
-	query := &Query{Parts: []Node{}}
-	err := parseQuery(queryString, 0, &query.Parts)
+	query := &Breadcrumbs{Parts: []Crumb{}}
+	err := parseBreadcrumbs(queryString, 0, &query.Parts)
 	query.Length = len(query.Parts)
 	return query, err
 }
 
-func parseQuery(query string, i int, queue *[]Node) error {
+func parseBreadcrumbs(query string, i int, queue *[]Crumb) error {
 	if i >= len(query) {
 		return nil
 	}
 	char := query[i : i+1]
 	if char == "." {
-		return parseQuery(query, i+1, queue)
+		return parseBreadcrumbs(query, i+1, queue)
 	}
 	if char == "*" {
-		newNode := &Wildcard{}
-		*queue = append(*queue, newNode)
-		return parseQuery(query, i+1, queue)
+		newCrumb := &Wildcard{}
+		*queue = append(*queue, newCrumb)
+		return parseBreadcrumbs(query, i+1, queue)
 	}
 	regexMatches := regexRegex.FindStringSubmatch(query[i:])
 	if len(regexMatches) > 1 {
@@ -137,46 +138,46 @@ func parseQuery(query string, i int, queue *[]Node) error {
 		if err != nil {
 			return err
 		}
-		newNode := &Regex{
+		newCrumb := &Regex{
 			pattern: pattern,
 		}
 		index, err := strconv.Atoi(regexMatches[1])
 		if err == nil {
-			newNode.index = &index
+			newCrumb.index = &index
 		}
-		*queue = append(*queue, newNode)
+		*queue = append(*queue, newCrumb)
 		i += len(regexMatches[0])
-		return parseQuery(query, i, queue)
+		return parseBreadcrumbs(query, i, queue)
 	}
 	listMatches := listRegex.FindStringSubmatch(query[i:])
 	if listMatches != nil {
 		list := listMatches[0]
 		i += len(list)
-		newNode := &List{
+		newCrumb := &List{
 			value: list,
 			key:   listMatches[1],
 		}
 		index, err := strconv.Atoi(listMatches[2])
 		if err == nil {
-			newNode.index = &index
+			newCrumb.index = &index
 		}
-		*queue = append(*queue, newNode)
+		*queue = append(*queue, newCrumb)
 		if i >= len(query) {
 			return nil
 		}
-		return parseQuery(query, i, queue)
+		return parseBreadcrumbs(query, i, queue)
 	}
 	key := keyRegex.FindString(query[i:])
 	if key != "" {
 		i += len(key)
-		newNode := &Key{
+		newCrumb := &Key{
 			value: key,
 		}
-		*queue = append(*queue, newNode)
+		*queue = append(*queue, newCrumb)
 		if i >= len(query) {
 			return nil
 		}
-		return parseQuery(query, i, queue)
+		return parseBreadcrumbs(query, i, queue)
 	}
 	return nil
 }

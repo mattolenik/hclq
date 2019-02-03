@@ -28,7 +28,7 @@ func HCL(reader io.Reader, qry *Query) (results []Result, isList bool, node *ast
 	if err != nil {
 		return
 	}
-	err = walk(node.Node, qry, 0, func(n ast.Node, queryNode Node) (err error) {
+	err = walk(node.Node, qry, 0, func(n ast.Node, queryNode Node) error {
 		switch node := n.(type) {
 		case *ast.LiteralType:
 			results = append(results, Result{node.Token.Value(), node})

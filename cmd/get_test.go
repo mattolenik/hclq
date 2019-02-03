@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -20,6 +19,7 @@ var getTests = []struct {
 	errText  string
 }{
 	{`a = 12`, `12`, Args{"get", "a"}, ""},
+	{`a = 12`, ``, Args{"get", "a[]"}, "wrong type"},
 	{`a = [12]`, `[12]`, Args{"get", "a[]"}, ""},
 	{`a = [12]`, `12`, Args{"get", "a[0]"}, ""},
 	{`a = [1, 2, 3]`, `[1,2,3]`, Args{"get", "a[]"}, ""},
@@ -27,7 +27,10 @@ var getTests = []struct {
 	{`a = [1, 2, 3]`, `2`, Args{"get", "a[1]"}, ""},
 	{`a = [1, 2, 3]`, `3`, Args{"get", "a[2]"}, ""},
 	{`a = [1, 2, 3]`, `3`, Args{"get", "a[-1]"}, ""},
+	{`a = [1, 2, 3]`, ``, Args{"get", "a[5]"}, "out of bounds"},
+	{`a = [1, 2, 3]`, ``, Args{"get", "a[-6]"}, "out of bounds"},
 	{`a = []`, `[]`, Args{"get", "a[]"}, ""},
+	{`a = []`, ``, Args{"get", "a"}, "wrong type"},
 	{`a { b = "2" }`, `"2"`, Args{"get", "a.b"}, ""},
 	{`a { b = "2" }`, `"2"`, Args{"get", "-r", "a.b"}, ""},
 	{`a { b = "2a" }`, `"2a"`, Args{"get", "-r", "a.b"}, ""},
@@ -58,8 +61,7 @@ func TestGet(t *testing.T) {
 				assert.NoError(err)
 			}
 			// Actual program output includes a newline
-			expected := fmt.Sprintf("%s\n", test.expected)
-			assert.Equal(expected, output)
+			assert.Equal(test.expected, strings.TrimRight(output, "\n"))
 		})
 	}
 }

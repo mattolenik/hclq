@@ -18,6 +18,10 @@ var GetCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := Get(args[0])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 		output, err := getOutput(result, rawOutput)
 		fmt.Println(output)
 		if err != nil {

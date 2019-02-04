@@ -32,7 +32,7 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 // getInputReader provides an os.Reader reading from either a file or stdin,
 // depending on whether or not an input file was specified.
 func getInputReader() (io.Reader, error) {
-	if val := config.Settings.InputFile; val != "" {
+	if val := config.InputFile; val != "" {
 		reader, err := os.Open(val)
 		if err != nil {
 			return nil, err

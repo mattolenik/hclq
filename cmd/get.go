@@ -23,7 +23,7 @@ var GetCmd = &cobra.Command{
 		if err != nil {
 			failExit(err)
 		}
-		output, err := getOutput(result, config.Settings.UseRawOutput)
+		output, err := getOutput(result, config.UseRawOutput)
 		if err != nil {
 			failExit(err)
 		}
@@ -32,6 +32,6 @@ var GetCmd = &cobra.Command{
 }
 
 func init() {
-	GetCmd.PersistentFlags().BoolVarP(&config.Settings.UseRawOutput, "raw", "r", false, "output raw format instead of JSON")
+	GetCmd.PersistentFlags().BoolVarP(&config.UseRawOutput, "raw", "r", false, "output raw format instead of JSON")
 	RootCmd.AddCommand(GetCmd)
 }

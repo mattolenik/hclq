@@ -37,6 +37,6 @@ func Execute() {
 
 func init() {
 	RootCmd.SetVersionTemplate("{{.Version}}\n")
-	RootFlags.StringVarP(&config.Settings.OutputFile, "out", "o", "", "write output to this file, otherwise use stdout")
-	RootFlags.StringVarP(&config.Settings.InputFile, "in", "i", "", "read input from this file, otherwise use stdin")
+	RootFlags.StringVarP(&config.OutputFile, "out", "o", "", "write output to this file, otherwise use stdout")
+	RootFlags.StringVarP(&config.InputFile, "in", "i", "", "read input from this file, otherwise use stdin")
 }

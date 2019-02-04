@@ -16,9 +16,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var modify bool
-var replaceN int
-
 type listAction = func(list *ast.ListType, newNodes []ast.Node)
 type valueAction = func(token *token.Token, newValue string)
 
@@ -104,7 +101,7 @@ var ReplaceCmd = &cobra.Command{
 			func(list *ast.ListType) error {
 				panic("Not implemented")
 			}, func(tok *token.Token) error {
-				tok.Text = `"` + strings.Replace(trimToken(tok.Text), args[1], args[2], replaceN) + `"`
+				tok.Text = `"` + strings.Replace(trimToken(tok.Text), args[1], args[2], config.ReplaceNTimes) + `"`
 				tok.Type = token.STRING
 				return nil
 			})
@@ -153,8 +150,8 @@ func setImpl(
 		return err
 	}
 	reader := os.Stdin
-	if config.Settings.InputFile != "" {
-		reader, err = os.Open(config.Settings.InputFile)
+	if config.InputFile != "" {
+		reader, err = os.Open(config.InputFile)
 		if err != nil {
 			return err
 		}
@@ -180,17 +177,17 @@ func setImpl(
 	}
 
 	writer := os.Stdout
-	if config.Settings.OutputFile != "" {
-		writer, err = os.Create(config.Settings.OutputFile)
+	if config.OutputFile != "" {
+		writer, err = os.Create(config.OutputFile)
 	}
 	return printer.Fprint(writer, docRoot)
 }
 
 func init() {
-	SetCmd.PersistentFlags().BoolVarP(&modify, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
+	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
 	RootCmd.AddCommand(SetCmd)
 	SetCmd.AddCommand(AppendCmd)
 	SetCmd.AddCommand(PrependCmd)
 	SetCmd.AddCommand(ReplaceCmd)
-	ReplaceCmd.Flags().IntVarP(&replaceN, "replace-n", "n", -1, "Limit replacements to n occurrences")
+	ReplaceCmd.Flags().IntVarP(&config.ReplaceNTimes, "replace-n", "n", -1, "Limit replacements to n occurrences")
 }

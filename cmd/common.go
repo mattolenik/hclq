@@ -48,8 +48,3 @@ func getOutputWriter() (io.Writer, error) {
 	}
 	return os.Stdout, nil
 }
-
-func failExit(err error) {
-	fmt.Fprintln(os.Stderr, err.Error())
-	os.Exit(1)
-}

@@ -13,21 +13,22 @@ var GetCmd = &cobra.Command{
 	Use:   "get <query>",
 	Short: "retrieve values matching <query>",
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		reader, err := getInputReader()
 		if err != nil {
-			failExit(err)
+			return err
 		}
 		doc := hclq.FromReader(reader)
 		result, err := doc.Get(args[0])
 		if err != nil {
-			failExit(err)
+			return err
 		}
 		output, err := getOutput(result, config.UseRawOutput)
 		if err != nil {
-			failExit(err)
+			return err
 		}
 		fmt.Println(output)
+		return nil
 	},
 }
 

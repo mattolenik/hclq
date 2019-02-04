@@ -72,7 +72,7 @@ func (k *Key) IsMatch(key string, val ast.Node) (bool, error) {
 	if key == k.value {
 		_, isList := val.(*ast.ListType)
 		if isList {
-			return true, fmt.Errorf("Key '%s' found but is of wrong type, query requested key/literal, found list", key)
+			return true, fmt.Errorf("key '%s' found but is of wrong type, query requested key/literal, found list", key)
 		}
 		return true, nil
 	}
@@ -87,7 +87,7 @@ func (l *List) IsMatch(key string, val ast.Node) (bool, error) {
 	if key == l.Key() {
 		_, ok := val.(*ast.ListType)
 		if !ok {
-			return false, fmt.Errorf("Key '%s' found but is of wrong type, query requested list", key)
+			return false, fmt.Errorf("key '%s' found but is of wrong type, query requested list", key)
 		}
 		return true, nil
 	}

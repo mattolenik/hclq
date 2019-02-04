@@ -9,18 +9,16 @@ import (
 // Get performs a query and returns a deserialized value
 func (doc *HclDocument) Get(q string) (interface{}, error) {
 	qry, _ := query.Parse(q)
-	resultPairs, isList, _, err := doc.Query(qry)
+	resultPairs, err := doc.Query(qry)
 	if err != nil {
 		return nil, err
+	}
+	if len(resultPairs) == 1 {
+		return resultPairs[0].Value, nil
 	}
 	results := []interface{}{}
 	for _, pair := range resultPairs {
 		results = append(results, pair.Value)
-	}
-	// The return type can be a list if: the queried object IS a list, or if the query matched multiple single items
-	// So, return now if it's not a list and there is only one query result
-	if !isList && len(results) == 1 {
-		return results[0], nil
 	}
 	return results, nil
 }
@@ -42,7 +40,7 @@ func (doc *HclDocument) GetAsInt(q string) (int, error) {
 			return num, nil
 		}
 	}
-	return 0, fmt.Errorf("Could not find int at '%s' nor a string convertable to an int", q)
+	return 0, fmt.Errorf("could not find int at '%s' nor a string convertable to an int", q)
 }
 
 // GetAsString performs Get but converts the result to a string
@@ -70,7 +68,7 @@ func (doc *HclDocument) GetAsList(q string) ([]interface{}, error) {
 	}
 	arr, ok := result.([]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Query does not return a list, cannot be used with GetList")
+		return nil, fmt.Errorf("query does not return a list, cannot be used with GetList")
 	}
 	return arr, nil
 }
@@ -117,7 +115,7 @@ func (doc *HclDocument) GetAsIntList(q string) ([]int, error) {
 		if ok {
 			num, err := strconv.Atoi(str)
 			if err != nil {
-				return nil, fmt.Errorf("Failed to parse '%s' into an integer", str)
+				return nil, fmt.Errorf("failed to parse '%s' into an integer", str)
 			}
 			results = append(results, num)
 			continue

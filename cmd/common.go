@@ -42,6 +42,13 @@ func getInputReader() (io.Reader, error) {
 	return os.Stdin, nil
 }
 
+func getOutputWriter() (io.Writer, error) {
+	if config.OutputFile != "" {
+		os.Create(config.OutputFile)
+	}
+	return os.Stdout, nil
+}
+
 func failExit(err error) {
 	fmt.Fprintln(os.Stderr, err.Error())
 	os.Exit(1)

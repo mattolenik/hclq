@@ -31,7 +31,7 @@ get:
 	# GitHub release tool
 	go get -u github.com/tcnksm/ghr
 
-install: get
+install:# get
 	go install -ldflags="${LDFLAGS}"
 
 publish: cideps test dist

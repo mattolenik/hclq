@@ -21,7 +21,8 @@ type Result struct {
 
 // HclDocument represents an HCL document in memory.
 type HclDocument struct {
-	reader io.Reader
+	reader   io.Reader
+	FileNode *ast.File
 }
 
 // FromReader creates a new document from an io.Reader
@@ -30,17 +31,17 @@ func FromReader(reader io.Reader) *HclDocument {
 }
 
 // Query performs a generic query and returns matching results
-func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, isList bool, node *ast.File, err error) {
+func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, err error) {
 	bytes, err := ioutil.ReadAll(doc.reader)
 	if err != nil {
 		return
 	}
-	node, err = parser.Parse(bytes)
+	doc.FileNode, err = parser.Parse(bytes)
 	if err != nil {
 		return
 	}
-	err = walk(node.Node, qry, 0, func(n ast.Node, crumb query.Crumb) error {
-		switch node := n.(type) {
+	err = walk(doc.FileNode.Node, qry, 0, func(astNode ast.Node, crumb query.Crumb) error {
+		switch node := astNode.(type) {
 		case *ast.LiteralType:
 			results = append(results, Result{node.Token.Value(), node})
 
@@ -49,7 +50,7 @@ func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, isList 
 			if !ok {
 				return fmt.Errorf("unexpected query type")
 			}
-			// Query is for a specific index
+			// In this case, the query is for a specific index. Add it to results as a single item.
 			if listNode.Index() != nil {
 				listLength := len(node.List)
 				listIndex := *listNode.Index()
@@ -68,13 +69,16 @@ func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, isList 
 				results = append(results, Result{val.Token.Value(), node})
 				return nil
 			}
-			// Query is for all elements
-			isList = true
+			// Otherwise query is for all items. Add them to results as a new list.
+			// TODO: should be done recursively to handle sub-lists
+			values := []interface{}{}
 			for _, item := range node.List {
 				if literal, ok := item.(*ast.LiteralType); ok {
-					results = append(results, Result{literal.Token.Value(), node})
+					values = append(values, literal.Token.Value())
 				}
 			}
+			results = append(results, Result{Value: values, Node: node})
+			return nil
 		// TODO: full objects
 		//case *ast.ObjectItem:
 		default:

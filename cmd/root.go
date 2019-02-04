@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/mattolenik/hclq/config"
@@ -15,7 +14,9 @@ var version string
 var RootCmd = &cobra.Command{
 	Use:     "hclq [flags] [command]",
 	Version: version,
-	Short:   "Query and modify HashiCorp HCL files",
+	// Don't print usage on error but still do so with --help and no args.
+	SilenceUsage: true,
+	Short:        "Query and modify HashiCorp HCL files",
 	Long: `hclq is a tool for querying the values of HCL files, reminiscent of jq.
 
 Queries can return either single or multiple values, which means that hclq commands work over ALL results of a query.
@@ -30,7 +31,6 @@ var RootFlags = RootCmd.PersistentFlags()
 // Execute - cobra entry point
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }

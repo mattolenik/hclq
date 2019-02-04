@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -27,7 +26,7 @@ var SetCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newValue := args[1]
-		return setImpl(cmd, args[0],
+		return setImpl(args[0],
 			func(list *ast.ListType) error {
 				hcl, err := getValueFromJSON(newValue)
 				if err != nil {
@@ -51,7 +50,7 @@ var AppendCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newValue := args[1]
-		return setImpl(cmd, args[0],
+		return setImpl(args[0],
 			func(list *ast.ListType) error {
 				node, err := getValueFromJSON(newValue)
 				if err != nil {
@@ -75,7 +74,7 @@ var PrependCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newValue := args[1]
-		return setImpl(cmd, args[0],
+		return setImpl(args[0],
 			func(list *ast.ListType) error {
 				node, err := getValueFromJSON(newValue)
 				if err != nil {
@@ -97,7 +96,7 @@ var ReplaceCmd = &cobra.Command{
 	Short: "find and replace a subsequence of items (or chars for strings)",
 	Args:  cobra.ExactArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return setImpl(cmd, args[0],
+		return setImpl(args[0],
 			func(list *ast.ListType) error {
 				panic("Not implemented")
 			}, func(tok *token.Token) error {
@@ -140,7 +139,6 @@ func getValueFromJSON(json string) (ast.Node, error) {
 }
 
 func setImpl(
-	cmd *cobra.Command,
 	queryString string,
 	listAction func(*ast.ListType) error,
 	valueAction func(*token.Token) error) error {
@@ -149,38 +147,35 @@ func setImpl(
 	if err != nil {
 		return err
 	}
-	reader := os.Stdin
-	if config.InputFile != "" {
-		reader, err = os.Open(config.InputFile)
-		if err != nil {
-			return err
-		}
+	reader, err := getInputReader()
+	if err != nil {
+		return err
 	}
+
 	doc := hclq.FromReader(reader)
-	resultPairs, isList, docRoot, err := doc.Query(queryNodes)
-	if isList {
-		for _, pair := range resultPairs {
-			list, ok := pair.Node.(*ast.ListType)
-			if !ok {
-				return fmt.Errorf("Expected ListType as query result")
-			}
+	resultPairs, err := doc.Query(queryNodes)
+	if err != nil {
+		return err
+	}
+
+	for _, pair := range resultPairs {
+		list, ok := pair.Node.(*ast.ListType)
+		if ok {
 			listAction(list)
+			continue
 		}
-	} else {
-		for _, pair := range resultPairs {
-			item, ok := pair.Node.(*ast.LiteralType)
-			if !ok {
-				return fmt.Errorf("Expected LiteralType in query results")
-			}
-			valueAction(&item.Token)
+		literal, ok := pair.Node.(*ast.LiteralType)
+		if ok {
+			valueAction(&literal.Token)
+			continue
 		}
 	}
 
-	writer := os.Stdout
-	if config.OutputFile != "" {
-		writer, err = os.Create(config.OutputFile)
+	writer, err := getOutputWriter()
+	if err != nil {
+		return err
 	}
-	return printer.Fprint(writer, docRoot)
+	return printer.Fprint(writer, doc.FileNode)
 }
 
 func init() {

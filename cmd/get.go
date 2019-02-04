@@ -3,11 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/mattolenik/hclq/hcl"
+	"github.com/mattolenik/hclq/config"
+	"github.com/mattolenik/hclq/hclq"
 	"github.com/spf13/cobra"
 )
-
-var useRawOutput bool
 
 // GetCmd command
 var GetCmd = &cobra.Command{
@@ -19,11 +18,12 @@ var GetCmd = &cobra.Command{
 		if err != nil {
 			failExit(err)
 		}
-		result, err := hcl.Get(reader, args[0])
+		doc := hclq.FromReader(reader)
+		result, err := doc.Get(args[0])
 		if err != nil {
 			failExit(err)
 		}
-		output, err := getOutput(result, useRawOutput)
+		output, err := getOutput(result, config.Settings.UseRawOutput)
 		if err != nil {
 			failExit(err)
 		}
@@ -32,6 +32,6 @@ var GetCmd = &cobra.Command{
 }
 
 func init() {
-	GetCmd.PersistentFlags().BoolVarP(&useRawOutput, "raw", "r", false, "output raw format instead of JSON")
+	GetCmd.PersistentFlags().BoolVarP(&config.Settings.UseRawOutput, "raw", "r", false, "output raw format instead of JSON")
 	RootCmd.AddCommand(GetCmd)
 }

@@ -1,4 +1,4 @@
-package hcl
+package hclq
 
 import (
 	"errors"
@@ -19,9 +19,19 @@ type Result struct {
 	Node  ast.Node
 }
 
+// HclDocument represents an HCL document in memory.
+type HclDocument struct {
+	reader io.Reader
+}
+
+// FromReader creates a new document from an io.Reader
+func FromReader(reader io.Reader) *HclDocument {
+	return &HclDocument{reader: reader}
+}
+
 // Query performs a generic query and returns matching results
-func Query(reader io.Reader, qry *query.Breadcrumbs) (results []Result, isList bool, node *ast.File, err error) {
-	bytes, err := ioutil.ReadAll(reader)
+func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, isList bool, node *ast.File, err error) {
+	bytes, err := ioutil.ReadAll(doc.reader)
 	if err != nil {
 		return
 	}

@@ -10,7 +10,8 @@ import (
 	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/hashicorp/hcl/hcl/token"
 	jsonParser "github.com/hashicorp/hcl/json/parser"
-	"github.com/mattolenik/hclq/hcl"
+	"github.com/mattolenik/hclq/config"
+	"github.com/mattolenik/hclq/hclq"
 	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
@@ -152,13 +153,14 @@ func setImpl(
 		return err
 	}
 	reader := os.Stdin
-	if inFile != "" {
-		reader, err = os.Open(inFile)
+	if config.Settings.InputFile != "" {
+		reader, err = os.Open(config.Settings.InputFile)
 		if err != nil {
 			return err
 		}
 	}
-	resultPairs, isList, docRoot, err := hcl.Query(reader, queryNodes)
+	doc := hclq.FromReader(reader)
+	resultPairs, isList, docRoot, err := doc.Query(queryNodes)
 	if isList {
 		for _, pair := range resultPairs {
 			list, ok := pair.Node.(*ast.ListType)
@@ -178,8 +180,8 @@ func setImpl(
 	}
 
 	writer := os.Stdout
-	if outFile != "" {
-		writer, err = os.Create(outFile)
+	if config.Settings.OutputFile != "" {
+		writer, err = os.Create(config.Settings.OutputFile)
 	}
 	return printer.Fprint(writer, docRoot)
 }

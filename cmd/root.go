@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mattolenik/hclq/config"
 	"github.com/spf13/cobra"
 )
-
-var outFile string
-var inFile string
 
 // Set by ldflags -X during build
 var version string
@@ -39,6 +37,6 @@ func Execute() {
 
 func init() {
 	RootCmd.SetVersionTemplate("{{.Version}}\n")
-	RootFlags.StringVarP(&outFile, "out", "o", "", "write output to this file, otherwise use stdout")
-	RootFlags.StringVarP(&inFile, "in", "i", "", "read input from this file, otherwise use stdin")
+	RootFlags.StringVarP(&config.Settings.OutputFile, "out", "o", "", "write output to this file, otherwise use stdout")
+	RootFlags.StringVarP(&config.Settings.InputFile, "in", "i", "", "read input from this file, otherwise use stdin")
 }

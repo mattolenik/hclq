@@ -1,16 +1,15 @@
-package hcl
+package hclq
 
 import (
 	"fmt"
 	"github.com/mattolenik/hclq/query"
-	"io"
 	"strconv"
 )
 
 // Get performs a query and returns a deserialized value
-func Get(reader io.Reader, q string) (interface{}, error) {
+func (doc *HclDocument) Get(q string) (interface{}, error) {
 	qry, _ := query.Parse(q)
-	resultPairs, isList, _, err := Query(reader, qry)
+	resultPairs, isList, _, err := doc.Query(qry)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +26,8 @@ func Get(reader io.Reader, q string) (interface{}, error) {
 }
 
 // GetAsInt performs Get but converts the result to a string
-func GetAsInt(reader io.Reader, q string) (int, error) {
-	result, err := Get(reader, q)
+func (doc *HclDocument) GetAsInt(q string) (int, error) {
+	result, err := doc.Get(q)
 	if err != nil {
 		return 0, err
 	}
@@ -47,8 +46,8 @@ func GetAsInt(reader io.Reader, q string) (int, error) {
 }
 
 // GetAsString performs Get but converts the result to a string
-func GetAsString(reader io.Reader, q string) (string, error) {
-	result, err := Get(reader, q)
+func (doc *HclDocument) GetAsString(q string) (string, error) {
+	result, err := doc.Get(q)
 	if err != nil {
 		return "", err
 	}
@@ -64,8 +63,8 @@ func GetAsString(reader io.Reader, q string) (string, error) {
 }
 
 // GetAsList does the same as Get but converts it to a list for you (with type check)
-func GetAsList(reader io.Reader, q string) ([]interface{}, error) {
-	result, err := Get(reader, q)
+func (doc *HclDocument) GetAsList(q string) ([]interface{}, error) {
+	result, err := doc.Get(q)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +76,8 @@ func GetAsList(reader io.Reader, q string) ([]interface{}, error) {
 }
 
 // GetAsStringList does the same as GetAsList but converts everything to a string for you.
-func GetAsStringList(reader io.Reader, q string) ([]string, error) {
-	list, err := GetAsList(reader, q)
+func (doc *HclDocument) GetAsStringList(q string) ([]string, error) {
+	list, err := doc.GetAsList(q)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +101,8 @@ func GetAsStringList(reader io.Reader, q string) ([]string, error) {
 
 // GetAsIntList does the same as GetAsList but with all values converted to ints.
 // Returns an error if a value is found that is not an int and couldn't be parsed into one.
-func GetAsIntList(reader io.Reader, q string) ([]int, error) {
-	list, err := GetAsList(reader, q)
+func (doc *HclDocument) GetAsIntList(q string) ([]int, error) {
+	list, err := doc.GetAsList(q)
 	if err != nil {
 		return nil, err
 	}

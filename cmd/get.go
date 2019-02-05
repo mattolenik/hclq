@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mattolenik/hclq/config"
 	"github.com/mattolenik/hclq/hclq"
@@ -30,7 +31,16 @@ var GetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println(output)
+		if config.OutputFile != "" {
+			file, err := os.Create(config.OutputFile)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			fmt.Fprintln(file, output)
+		} else {
+			fmt.Println(output)
+		}
 		return nil
 	},
 }

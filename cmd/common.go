@@ -41,10 +41,3 @@ func getInputReader() (io.Reader, error) {
 	}
 	return os.Stdin, nil
 }
-
-func getOutputWriter() (io.WriteCloser, error) {
-	if config.OutputFile != "" {
-		os.Create(config.OutputFile)
-	}
-	return os.Stdout, nil
-}

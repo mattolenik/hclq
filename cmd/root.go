@@ -16,8 +16,8 @@ var RootCmd = &cobra.Command{
 	Version: version,
 	// Don't print usage on error but still do so with --help and no args.
 	SilenceUsage: true,
-	Short:        "Query and modify HashiCorp HCL files",
-	Long: `hclq is a tool for querying the values of HCL files, reminiscent of jq.
+	Short:        "Query and modify HashiCorp Configuration Language files",
+	Long: `hclq is a tool for getting and setting the values of HCL files, like sed for HCL.
 
 Queries can return either single or multiple values, which means that hclq commands work over ALL results of a query.
 This means that commands such as set can work over many keys at once.

@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"io"
+	"os"
 	"strconv"
 	"strings"
 
@@ -123,7 +126,7 @@ func getTokenType(val string) token.Type {
 }
 
 func init() {
-	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
+	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "in-place", "i", false, "edit the input file in-place rather than printing to stdout, conflicts with --out")
 	SetCmd.AddCommand(AppendCmd)
 	SetCmd.AddCommand(PrependCmd)
 	SetCmd.AddCommand(ReplaceCmd)
@@ -132,6 +135,10 @@ func init() {
 }
 
 func performSet(queryString string, listAction func(*ast.ListType) error, valueAction func(*token.Token) error) error {
+	err := validateOutputConfig()
+	if err != nil {
+		return err
+	}
 	reader, err := getInputReader()
 	if err != nil {
 		return err
@@ -150,5 +157,25 @@ func performSet(queryString string, listAction func(*ast.ListType) error, valueA
 	}
 	defer writer.Close()
 	doc.Print(writer)
+	return nil
+}
+
+func getOutputWriter() (io.WriteCloser, error) {
+	if config.OutputFile != "" {
+		return os.Create(config.OutputFile)
+	}
+	if config.ModifyInPlace {
+		return os.Create(config.InputFile)
+	}
+	return os.Stdout, nil
+}
+
+func validateOutputConfig() error {
+	if config.ModifyInPlace && len(config.OutputFile) > 0 {
+		return fmt.Errorf("cannot use both --modify and --out at the same time")
+	}
+	if config.ModifyInPlace && len(config.InputFile) == 0 {
+		return fmt.Errorf("cannot use --modify without specifying an input file with --in")
+	}
 	return nil
 }

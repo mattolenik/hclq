@@ -30,12 +30,12 @@ with the [] suffix, e.g. 'data.foo.bar.other[]' or 'data.foo.bar.other[1]'.
 
 Match types:
     literal     Match a literal value.
-	list[]      Match a list and retrieve all items.
-	list[1]     Match a list and retrieve a specific item.
-	/regex/     Match anything according to the specified regex.
-	/regex/[]   Match a list according to the regex and retrieve all items.
-	/regex/[1]  Match a list according to the regex and retrieve a specific item.
-	*           Match anything.
+    list[]      Match a list and retrieve all items.
+    list[1]     Match a list and retrieve a specific item.
+    /regex/     Match anything according to the specified regex.
+    /regex/[]   Match a list according to the regex and retrieve all items.
+    /regex/[1]  Match a list according to the regex and retrieve a specific item.
+    *           Match anything.
 
 Queries can return either single or multiple values. If a query matches e.g.
 multiple arrays across multiple objects, a list of arrays will be returned.

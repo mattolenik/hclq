@@ -28,6 +28,50 @@ Install with Go:
 
 Or download a release from GitHub. More info on the script is down below.
 
+# Help Text
+```
+hclq is a tool for manipulating the config files used by HashiCorp tools.
+
+hclq uses a "breadcrumb" or "path" style query. Given the HCL:
+    data "foo" "bar" {
+        id = "100"
+        other = [1, 2, 3]
+    }
+
+A query for 'data.foo.bar.id' would return 100. Arrays/lists must be matched
+with the [] suffix, e.g. 'data.foo.bar.other[]' or 'data.foo.bar.other[1]'.
+
+Match types:
+    literal     Match a literal value.
+    list[]      Match a list and retrieve all items.
+    list[1]     Match a list and retrieve a specific item.
+    /regex/     Match anything according to the specified regex.
+    /regex/[]   Match a list according to the regex and retrieve all items.
+    /regex/[1]  Match a list according to the regex and retrieve a specific item.
+    *           Match anything.
+
+Queries can return either single or multiple values. If a query matches e.g.
+multiple arrays across multiple objects, a list of arrays will be returned.
+If this query is used with a set command, ALL of those matching arrays will be
+set.
+
+Usage:
+  hclq [command]
+
+Available Commands:
+  get         retrieve values matching <query>
+  help        Help about any command
+  set         set matching value(s), specify a string, number, or JSON object or array
+
+Flags:
+  -h, --help         help for hclq
+  -i, --in string    read input from this file, otherwise use stdin
+  -o, --out string   write output to this file, otherwise use stdout
+      --version      version for hclq
+
+Use "hclq [command] --help" for more information about a command.
+```
+
 # Examples
 
 ## Getting Values

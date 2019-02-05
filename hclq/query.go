@@ -39,6 +39,20 @@ func FromReader(reader io.Reader) (*HclDocument, error) {
 	return doc, nil
 }
 
+// FromFile creates a new document from a file.
+func FromFile(filename string) (*HclDocument, error) {
+	bytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	doc := &HclDocument{}
+	doc.FileNode, err = parser.Parse(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return doc, nil
+}
+
 // Print writes the HCL document out to the given io.Writer.
 func (doc *HclDocument) Print(writer io.Writer) error {
 	return printer.Fprint(writer, doc.FileNode)

@@ -111,7 +111,7 @@ var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(-?\d*)]`)
 // Matches by regex `/someRegex/` with optional indexer, e.g. `/someRegex/[]`
 var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/\[(\d*)]?`)
 
-func Parse(queryString string) (*Breadcrumbs, error) {
+func ParseBreadcrumbs(queryString string) (*Breadcrumbs, error) {
 	queryString = strings.Trim(queryString, "\"'")
 	query := &Breadcrumbs{Parts: []Crumb{}}
 	err := parseBreadcrumbs(queryString, 0, &query.Parts)

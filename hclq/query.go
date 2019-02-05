@@ -45,7 +45,11 @@ func (doc *HclDocument) Print(writer io.Writer) error {
 }
 
 // Query performs a generic query and returns matching results
-func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, err error) {
+func (doc *HclDocument) Query(queryString string) (results []Result, err error) {
+	qry, err := query.ParseBreadcrumbs(queryString)
+	if err != nil {
+		return nil, err
+	}
 	err = walk(doc.FileNode.Node, qry, 0, func(astNode ast.Node, crumb query.Crumb) error {
 		switch node := astNode.(type) {
 		case *ast.LiteralType:

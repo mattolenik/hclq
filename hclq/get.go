@@ -2,14 +2,12 @@ package hclq
 
 import (
 	"fmt"
-	"github.com/mattolenik/hclq/query"
 	"strconv"
 )
 
 // Get performs a query and returns a deserialized value
 func (doc *HclDocument) Get(q string) (interface{}, error) {
-	qry, _ := query.Parse(q)
-	resultPairs, err := doc.Query(qry)
+	resultPairs, err := doc.Query(q)
 	if err != nil {
 		return nil, err
 	}

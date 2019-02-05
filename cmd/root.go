@@ -16,13 +16,32 @@ var RootCmd = &cobra.Command{
 	Version: version,
 	// Don't print usage on error but still do so with --help and no args.
 	SilenceUsage: true,
-	Short:        "Query and modify HashiCorp Configuration Language files",
-	Long: `hclq is a tool for getting and setting the values of HCL files, like sed for HCL.
+	Short:        "Query and modify HashiCorp Configuration Language files. Like sed for HCL.",
+	Long: `hclq is a tool for manipulating the config files used by HashiCorp tools.
 
-Queries can return either single or multiple values, which means that hclq commands work over ALL results of a query.
-This means that commands such as set can work over many keys at once.
+hclq uses a "breadcrumb" or "path" style query. Given the HCL:
+    data "foo" "bar" {
+        id = "100"
+        other = [1, 2, 3]
+    }
 
-hclq outputs JSON by default. A tool such as jq is recommended for further processing.`,
+A query for 'data.foo.bar.id' would return 100. Arrays/lists must be matched
+with the [] suffix, e.g. 'data.foo.bar.other[]' or 'data.foo.bar.other[1]'.
+
+Match types:
+    literal     Match a literal value.
+	list[]      Match a list and retrieve all items.
+	list[1]     Match a list and retrieve a specific item.
+	/regex/     Match anything according to the specified regex.
+	/regex/[]   Match a list according to the regex and retrieve all items.
+	/regex/[1]  Match a list according to the regex and retrieve a specific item.
+	*           Match anything.
+
+Queries can return either single or multiple values. If a query matches e.g.
+multiple arrays across multiple objects, a list of arrays will be returned.
+If this query is used with a set command, ALL of those matching arrays will be
+set.
+`,
 }
 
 // RootFlags flags

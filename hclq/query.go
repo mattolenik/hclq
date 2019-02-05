@@ -7,11 +7,10 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/mattolenik/hclq/query"
-	//"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
 	"github.com/hashicorp/hcl/hcl/printer"
+	"github.com/mattolenik/hclq/query"
 )
 
 // Result represents a query result

@@ -15,6 +15,7 @@ import (
 
 // Result represents a query result
 type Result struct {
+	Key   string
 	Value interface{}
 	Node  ast.Node
 }
@@ -43,16 +44,30 @@ func (doc *HclDocument) Print(writer io.Writer) error {
 	return printer.Fprint(writer, doc.FileNode)
 }
 
+// QueryKeys performs a query and returns matching key or keys, no values.
+func (doc *HclDocument) QueryKeys(queryString string) (keys []string, err error) {
+	results, err := doc.Query(queryString)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range results {
+		if len(r.Key) > 0 {
+			keys = append(keys, r.Key)
+		}
+	}
+	return keys, nil
+}
+
 // Query performs a generic query and returns matching results
 func (doc *HclDocument) Query(queryString string) (results []Result, err error) {
 	qry, err := query.ParseBreadcrumbs(queryString)
 	if err != nil {
 		return nil, err
 	}
-	err = walk(doc.FileNode.Node, qry, 0, func(astNode ast.Node, crumb query.Crumb) error {
+	err = walk(doc.FileNode.Node, qry, []string{}, 0, func(astNode ast.Node, key string, crumb query.Crumb) error {
 		switch node := astNode.(type) {
 		case *ast.LiteralType:
-			results = append(results, Result{node.Token.Value(), node})
+			results = append(results, Result{key, node.Token.Value(), node})
 
 		case *ast.ListType:
 			listNode, ok := crumb.(query.IndexedCrumb)
@@ -75,18 +90,18 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 				if !ok {
 					return err
 				}
-				results = append(results, Result{val.Token.Value(), node})
+				results = append(results, Result{key, val.Token.Value(), node})
 				return nil
 			}
 			// Otherwise query is for all items. Add them to results as a new list.
-			// TODO: should be done recursively to handle sub-lists
 			values := []interface{}{}
 			for _, item := range node.List {
 				if literal, ok := item.(*ast.LiteralType); ok {
 					values = append(values, literal.Token.Value())
 				}
 			}
-			results = append(results, Result{Value: values, Node: node})
+			results = append(results, Result{key, values, node})
+
 			return nil
 		// TODO: full objects
 		//case *ast.ObjectItem:
@@ -98,11 +113,17 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 	return
 }
 
-func walk(astNode ast.Node, query *query.Breadcrumbs, qIdx int, action func(node ast.Node, crumb query.Crumb) error) error {
+func walk(
+	astNode ast.Node,
+	query *query.Breadcrumbs,
+	keyTrail []string,
+	crumbIndex int,
+	action func(node ast.Node, key string, crumb query.Crumb) error) error {
+
 	switch node := astNode.(type) {
 	case *ast.ObjectList:
 		for _, obj := range node.Items {
-			err := walk(obj, query, qIdx, action)
+			err := walk(obj, query, keyTrail, crumbIndex, action)
 			if err != nil {
 				return err
 			}
@@ -111,31 +132,34 @@ func walk(astNode ast.Node, query *query.Breadcrumbs, qIdx int, action func(node
 
 	case *ast.ObjectItem:
 		for _, key := range node.Keys {
-			part := query.Parts[qIdx]
-			isMatch, err := part.IsMatch(strings.Trim(key.Token.Text, `"`), node.Val)
+			part := query.Parts[crumbIndex]
+			token := strings.Trim(key.Token.Text, `"`)
+			keyTrail = append(keyTrail, token)
+			isMatch, err := part.IsMatch(token, node.Val)
 			if err != nil {
 				return err
 			}
 			if !isMatch {
 				return nil
 			}
-			if qIdx+1 >= query.Length {
+			// End of query, this means a match
+			if crumbIndex+1 >= query.Length {
 				break
 			}
-			qIdx++
+			crumbIndex++
 		}
 		// Assume a match if return didn't happen in the for loop.
 		// Assume Keys will always be len > 0 (it wouldn't be valid HCL otherwise)
-		return walk(node.Val, query, qIdx, action)
+		return walk(node.Val, query, keyTrail, crumbIndex, action)
 
 	case *ast.ListType:
-		return action(node, query.Parts[qIdx])
+		return action(node, strings.Join(keyTrail, "."), query.Parts[crumbIndex])
 
 	case *ast.LiteralType:
-		return action(node, query.Parts[qIdx])
+		return action(node, strings.Join(keyTrail, "."), query.Parts[crumbIndex])
 
 	case *ast.ObjectType:
-		return walk(node.List, query, qIdx, action)
+		return walk(node.List, query, keyTrail, crumbIndex, action)
 
 	default:
 		return errors.New("unhandled case")

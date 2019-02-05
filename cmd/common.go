@@ -15,7 +15,7 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 		arr, isArray := obj.([]interface{})
 		if isArray {
 			for _, item := range arr {
-				// Rough output, uses built-in %v, most useful for simple types.
+				// Simple output, uses built-in %v, most useful for simple types.
 				result += fmt.Sprintf("%v", item) + " "
 			}
 			result = strings.TrimRight(result, " ")

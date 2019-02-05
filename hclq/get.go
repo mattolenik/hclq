@@ -21,6 +21,11 @@ func (doc *HclDocument) Get(q string) (interface{}, error) {
 	return results, nil
 }
 
+// GetKeys peforms a query and returns just the key or keys, no values.
+func (doc *HclDocument) GetKeys(q string) ([]string, error) {
+	return doc.QueryKeys(q)
+}
+
 // GetAsInt performs Get but converts the result to a string
 func (doc *HclDocument) GetAsInt(q string) (int, error) {
 	result, err := doc.Get(q)

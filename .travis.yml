@@ -11,3 +11,6 @@ deploy:
   on:
     tags: true
     repo: mattolenik/hclq
+    branches:
+      only:
+        - master

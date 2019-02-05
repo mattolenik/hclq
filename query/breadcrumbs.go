@@ -105,14 +105,14 @@ func (l *List) Index() *int {
 // Matches by key literal `abc`
 var keyRegex, _ = regexp.Compile(`^([\w|-]+)`)
 
-// Matches a list `abc[]` or `abc[123]`
+// Matches a list `abc[]` or `abc[123]` or `a[-1]`
 var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(-?\d*)]`)
 
 // Matches by regex `/someRegex/` with optional indexer, e.g. `/someRegex/[]`
-var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/\[(\d*)]?`)
+var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/(\[(\d*)\])?`)
 
 func ParseBreadcrumbs(queryString string) (*Breadcrumbs, error) {
-	queryString = strings.Trim(queryString, "\"'")
+	queryString = strings.Trim(queryString, `"'`)
 	query := &Breadcrumbs{Parts: []Crumb{}}
 	err := parseBreadcrumbs(queryString, 0, &query.Parts)
 	query.Length = len(query.Parts)

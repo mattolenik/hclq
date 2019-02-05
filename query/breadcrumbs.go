@@ -15,36 +15,46 @@ type Breadcrumbs struct {
 	Length int
 }
 
-func (q *Breadcrumbs) Slice(low int) *Breadcrumbs {
-	return &Breadcrumbs{Parts: q.Parts[low:], Length: q.Length}
-}
-
+// Crumb represents an individual portion of a user's query. For example, given
+// the query 'data.*.bar.id', each of data, *, bar, and id are each crumbs.
+// Crumbs implement IsMatch to determine whether or not it can be used to match
+// a given HCL key.
 type Crumb interface {
 	IsMatch(key string, val ast.Node) (bool, error)
 	Key() string
 }
 
+// IndexedCrumb is a type of Crumb used for indexable elements such as arrays
+// or lists. Its index is optional and will be nil if no index was specified.
+// For example, in the query 'foo.bar[1]', the bar[1] portion will be represented
+// by an IndexedCrumb with an index of 1. If an index is not present, such as
+// with 'bar[]', the index will be nil.
 type IndexedCrumb interface {
 	IsMatch(key string, val ast.Node) (bool, error)
 	Key() string
 	Index() *int
 }
 
+// Key is a literal breadcrumb that matches based on its exact value.
 type Key struct {
 	value string
 }
 
+// List is a breadcrumb representing a list or array, either the entire list or
+// just an individual item.
 type List struct {
 	value string
 	index *int
 	key   string
 }
 
+// Regex is a breadcrumb that matches based on a regex. It can take an optioanl indexer.
 type Regex struct {
 	pattern *regexp.Regexp
 	index   *int
 }
 
+// Wildcard is the literal breadcrumb '*' that matches anything.
 type Wildcard struct {
 }
 
@@ -111,6 +121,8 @@ var listRegex, _ = regexp.Compile(`^([\w|-]+)\[(-?\d*)]`)
 // Matches by regex `/someRegex/` with optional indexer, e.g. `/someRegex/[]`
 var regexRegex, _ = regexp.Compile(`/((?:[^\\/]|\\.)*)/(\[(\d*)\])?`)
 
+// ParseBreadcrumbs reads in a query string specified by the user and breaks it
+// down into Crumb instances that can be matched against HCL keys with IsMatch.
 func ParseBreadcrumbs(queryString string) (*Breadcrumbs, error) {
 	queryString = strings.Trim(queryString, `"'`)
 	query := &Breadcrumbs{Parts: []Crumb{}}

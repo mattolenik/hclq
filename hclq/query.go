@@ -11,6 +11,7 @@ import (
 	//"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
+	"github.com/hashicorp/hcl/hcl/printer"
 )
 
 // Result represents a query result
@@ -21,25 +22,30 @@ type Result struct {
 
 // HclDocument represents an HCL document in memory.
 type HclDocument struct {
-	reader   io.Reader
 	FileNode *ast.File
 }
 
 // FromReader creates a new document from an io.Reader
-func FromReader(reader io.Reader) *HclDocument {
-	return &HclDocument{reader: reader}
+func FromReader(reader io.Reader) (*HclDocument, error) {
+	bytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	doc := &HclDocument{}
+	doc.FileNode, err = parser.Parse(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return doc, nil
+}
+
+// Print writes the HCL document out to the given io.Writer.
+func (doc *HclDocument) Print(writer io.Writer) error {
+	return printer.Fprint(writer, doc.FileNode)
 }
 
 // Query performs a generic query and returns matching results
 func (doc *HclDocument) Query(qry *query.Breadcrumbs) (results []Result, err error) {
-	bytes, err := ioutil.ReadAll(doc.reader)
-	if err != nil {
-		return
-	}
-	doc.FileNode, err = parser.Parse(bytes)
-	if err != nil {
-		return
-	}
 	err = walk(doc.FileNode.Node, qry, 0, func(astNode ast.Node, crumb query.Crumb) error {
 		switch node := astNode.(type) {
 		case *ast.LiteralType:

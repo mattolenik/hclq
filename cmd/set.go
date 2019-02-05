@@ -1,22 +1,15 @@
 package cmd
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/hashicorp/hcl/hcl/printer"
 	"github.com/hashicorp/hcl/hcl/token"
-	jsonParser "github.com/hashicorp/hcl/json/parser"
 	"github.com/mattolenik/hclq/config"
 	"github.com/mattolenik/hclq/hclq"
-	"github.com/mattolenik/hclq/query"
 	"github.com/spf13/cobra"
 )
-
-type listAction = func(list *ast.ListType, newNodes []ast.Node)
-type valueAction = func(token *token.Token, newValue string)
 
 // SetCmd cobra command
 var SetCmd = &cobra.Command{
@@ -26,13 +19,13 @@ var SetCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newValue := args[1]
-		return setImpl(args[0],
+		return performSet(args[0],
 			func(list *ast.ListType) error {
-				hcl, err := getValueFromJSON(newValue)
+				listNode, err := hclq.HclListFromJSON(newValue)
 				if err != nil {
 					return err
 				}
-				list.List = hcl.(*ast.ListType).List
+				list.List = listNode.List
 				return nil
 			}, func(tok *token.Token) error {
 				tok.Text = `"` + newValue + `"`
@@ -50,9 +43,9 @@ var AppendCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newValue := args[1]
-		return setImpl(args[0],
+		return performSet(args[0],
 			func(list *ast.ListType) error {
-				node, err := getValueFromJSON(newValue)
+				node, err := hclq.HclFromJSON(newValue)
 				if err != nil {
 					return err
 				}
@@ -74,9 +67,9 @@ var PrependCmd = &cobra.Command{
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 		newValue := args[1]
-		return setImpl(args[0],
+		return performSet(args[0],
 			func(list *ast.ListType) error {
-				node, err := getValueFromJSON(newValue)
+				node, err := hclq.HclFromJSON(newValue)
 				if err != nil {
 					return err
 				}
@@ -96,9 +89,10 @@ var ReplaceCmd = &cobra.Command{
 	Short: "find and replace a subsequence of items (or chars for strings)",
 	Args:  cobra.ExactArgs(3),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return setImpl(args[0],
+		return performSet(args[0],
 			func(list *ast.ListType) error {
-				panic("Not implemented")
+				// TODO: implement replace on lists
+				panic("replace on lists is not implemented yet")
 			}, func(tok *token.Token) error {
 				tok.Text = `"` + strings.Replace(trimToken(tok.Text), args[1], args[2], config.ReplaceNTimes) + `"`
 				tok.Type = token.STRING
@@ -128,61 +122,33 @@ func getTokenType(val string) token.Type {
 	// TODO: support HEREDOC
 }
 
-func getValueFromJSON(json string) (ast.Node, error) {
-	json = fmt.Sprintf(`{"root":%s}`, json) // parser requires `root` key
-	hcl, err := jsonParser.Parse([]byte(json))
-	if err != nil {
-		return nil, err
-	}
-	node := hcl.Node.(*ast.ObjectList).Items[0].Val
-	return node, nil
+func init() {
+	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
+	SetCmd.AddCommand(AppendCmd)
+	SetCmd.AddCommand(PrependCmd)
+	SetCmd.AddCommand(ReplaceCmd)
+	RootCmd.AddCommand(SetCmd)
+	ReplaceCmd.Flags().IntVarP(&config.ReplaceNTimes, "replace-n", "n", -1, "Limit replacements to n occurrences")
 }
 
-func setImpl(
-	queryString string,
-	listAction func(*ast.ListType) error,
-	valueAction func(*token.Token) error) error {
-
-	queryNodes, err := query.Parse(queryString)
-	if err != nil {
-		return err
-	}
+func performSet(queryString string, listAction func(*ast.ListType) error, valueAction func(*token.Token) error) error {
 	reader, err := getInputReader()
 	if err != nil {
 		return err
 	}
-
-	doc := hclq.FromReader(reader)
-	resultPairs, err := doc.Query(queryNodes)
+	doc, err := hclq.FromReader(reader)
 	if err != nil {
 		return err
 	}
-
-	for _, pair := range resultPairs {
-		list, ok := pair.Node.(*ast.ListType)
-		if ok {
-			listAction(list)
-			continue
-		}
-		literal, ok := pair.Node.(*ast.LiteralType)
-		if ok {
-			valueAction(&literal.Token)
-			continue
-		}
+	err = doc.Set(queryString, listAction, valueAction)
+	if err != nil {
+		return err
 	}
-
 	writer, err := getOutputWriter()
 	if err != nil {
 		return err
 	}
-	return printer.Fprint(writer, doc.FileNode)
-}
-
-func init() {
-	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "modify", "m", false, "modify the input file rather than printing output, conflicts with --out")
-	RootCmd.AddCommand(SetCmd)
-	SetCmd.AddCommand(AppendCmd)
-	SetCmd.AddCommand(PrependCmd)
-	SetCmd.AddCommand(ReplaceCmd)
-	ReplaceCmd.Flags().IntVarP(&config.ReplaceNTimes, "replace-n", "n", -1, "Limit replacements to n occurrences")
+	defer writer.Close()
+	doc.Print(writer)
+	return nil
 }

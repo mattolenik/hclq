@@ -67,6 +67,17 @@
   revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
   version = "v1.3.0"
 
+[[projects]]
+  digest = "1:35a609636092b0ddbf6d5a2d250c67a0476202ca8ebb0bb4d338b3744a522870"
+  name = "github.com/valyala/fastjson"
+  packages = [
+    ".",
+    "fastfloat",
+  ]
+  pruneopts = "UT"
+  revision = "ecda198f5d2b8600b6af67635a6b2bf6708e5a71"
+  version = "v1.4.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -78,6 +89,7 @@
     "github.com/hashicorp/hcl/json/parser",
     "github.com/spf13/cobra",
     "github.com/stretchr/testify/assert",
+    "github.com/valyala/fastjson",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

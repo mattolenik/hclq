@@ -29,8 +29,8 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 	return string(jsonBody), nil
 }
 
-// getInputReader provides an os.Reader reading from either a file or stdin,
-// depending on whether or not an input file was specified.
+// getInputReader provides an io.Reader for reading from either a file
+// or stdin, depending on whether or not an input file was specified.
 func getInputReader() (io.Reader, error) {
 	if val := config.InputFile; val != "" {
 		reader, err := os.Open(val)
@@ -42,7 +42,7 @@ func getInputReader() (io.Reader, error) {
 	return os.Stdin, nil
 }
 
-func getOutputWriter() (io.Writer, error) {
+func getOutputWriter() (io.WriteCloser, error) {
 	if config.OutputFile != "" {
 		os.Create(config.OutputFile)
 	}

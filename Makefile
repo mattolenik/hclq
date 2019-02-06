@@ -14,7 +14,7 @@ clean:
 	rm -rf dist/ vendor/
 
 dist: get
-	set -v; for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -i -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
+	set -v; for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
 	# Remove binary used for testing
 	rm dist/hclq
 
@@ -24,7 +24,7 @@ get:
 	# GitHub release tool
 	go get -u github.com/tcnksm/ghr
 
-install:# get
+install: get
 	go install -ldflags="${LDFLAGS}"
 
 publish: test dist

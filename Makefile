@@ -52,7 +52,7 @@ publish: test dist
 		shasum -a 256 dist/* > dist/hclq-shasums; \
 		if [ -n "$(IS_PUBLISH)" ]; then \
 			cd dist/; \
-			ghr -delete -u "$$GITHUB_USER" ${VERSION} .; \
+			ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} .; \
 		fi; \
 	)
 

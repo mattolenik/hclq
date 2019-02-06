@@ -146,10 +146,6 @@ func walk(
 
 	case *ast.ObjectItem:
 		for _, key := range node.Keys {
-			// End of query, this means a match
-			if crumbIndex+1 >= query.Length {
-				break
-			}
 			part := query.Parts[crumbIndex]
 			token := strings.Trim(key.Token.Text, `"`)
 			keyTrail = append(keyTrail, token)
@@ -159,6 +155,10 @@ func walk(
 			}
 			if !isMatch {
 				return nil
+			}
+			// End of query, this means a match
+			if crumbIndex+1 >= query.Length {
+				break
 			}
 			crumbIndex++
 		}

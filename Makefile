@@ -16,6 +16,8 @@ clean:
 	rm -rf dist/ vendor/
 
 dist: get
+	# Delete files from testing
+	rm -rf dist && mkdir -p dist
 	# Make available for all the same platforms as Terraform.
 	export GOOS=darwin  GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	export GOOS=freebsd GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
@@ -29,8 +31,7 @@ dist: get
 	export GOOS=solaris GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	export GOOS=windows GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	export GOOS=windows GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
-	# Remove binary used for testing
-	rm -f dist/hclq
+	cd dist && shasum -a 256 hclq-* > hclq-shasums
 
 get:
 	go get -u github.com/golang/dep/cmd/dep
@@ -44,15 +45,8 @@ install: get
 
 publish: test dist
 	( \
-		VERSION=${VERSION}; \
-		LINUX_FILENAME="hclq-linux-amd64"; \
-		DARWIN_FILENAME="hclq-darwin-amd64"; \
-		LINUX_HASH=$$(shasum -a 256 dist/$$LINUX_FILENAME | awk '{print $$1}'); \
-		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
-		shasum -a 256 dist/* > dist/hclq-shasums; \
 		if [ -n "$(IS_PUBLISH)" ]; then \
-			cd dist/; \
-			ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} .; \
+			ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} dist/; \
 		fi; \
 	)
 

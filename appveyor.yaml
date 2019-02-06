@@ -1,0 +1,37 @@
+version: '{branch}-{build}'
+pull_requests:
+  do_not_increment_build_number: true
+skip_non_tags: true
+image: Ubuntu1804
+clone_folder: /home/appveyor/go/src/github.com/mattolenik/hclq
+init:
+- sh: >-
+    #!/usr/bin/env bash
+
+    set -exuo pipefail
+
+    if [[ ! -d /usr/local/go ]]; then
+      curl -sSJL https://dl.google.com/go/go1.11.5.linux-amd64.tar.gz | sudo tar xz -C /usr/local
+    fi
+
+    export PATH="$HOME/go/bin:/usr/local/go/bin:$PATH"
+environment:
+  GITHUB_TOKEN:
+    secure: 8ZC8xAVHLPN5ITAX22ceWft9ThYwEnkV0wCwES26qQ0C1ZBRml3tpVy2MjMrEuRz
+  GITHUB_USER: mattolenik
+  GITHUB_REPO: hclq
+build_script:
+- sh: make dist
+test_script:
+- sh: make test
+deploy_script:
+- sh: >-
+    #!/usr/bin/env bash
+
+    set -exuo pipefail
+
+
+    if [[ $APPVEYOR_REPO_TAG == true ]]; then
+      export TRAVIS_TAG=1
+      make publish
+    fi

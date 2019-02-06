@@ -3,6 +3,7 @@ VERSION=$(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && v
 LDFLAGS=-s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
 GOOS=darwin linux windows
 GOARCH=amd64
+GOPATH=$(HOME)/go
 
 default: test build
 
@@ -19,7 +20,7 @@ dist: get
 
 get:
 	go get -u github.com/golang/dep/cmd/dep
-	$$GOPATH/bin/dep ensure
+	$(GOPATH)/bin/dep ensure
 	# GitHub release tool
 	go get -u github.com/tcnksm/ghr
 

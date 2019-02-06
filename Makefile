@@ -1,7 +1,9 @@
 # Version and linker flags
+# This will return either the current tag, branch, or commit hash of this repo.
 VERSION=$(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
 LDFLAGS=-s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
-GOOS=darwin linux windows
+# Target the same OSes as Terraform
+GOOS=darwin freebsd linux openbsd solaris windows
 GOARCH=amd64
 GOPATH=$(HOME)/go
 IS_PUBLISH=$(APPVEYOR_REPO_TAG)

@@ -40,7 +40,7 @@ publish: test dist
 		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
 		shasum -a 256 dist/* > dist/hclq-shasums; \
 		if [ -n "$(IS_PUBLISH)" ]; then \
-			cd dist/
+			cd dist/; \
 			ghr -u "$$GITHUB_USER" ${VERSION} .; \
 		fi; \
 	)

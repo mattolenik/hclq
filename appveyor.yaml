@@ -7,7 +7,6 @@ clone_folder: /home/appveyor/go/src/github.com/mattolenik/hclq
 init:
 - sh: >-
     #!/usr/bin/env bash
-
     set -exuo pipefail
 
     if [[ ! -d /usr/local/go ]]; then
@@ -27,11 +26,8 @@ test_script:
 deploy_script:
 - sh: >-
     #!/usr/bin/env bash
-
     set -exuo pipefail
 
-
     if [[ $APPVEYOR_REPO_TAG == true ]]; then
-      export TRAVIS_TAG=1
       make publish
     fi

@@ -4,6 +4,7 @@ LDFLAGS=-s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
 GOOS=darwin linux windows
 GOARCH=amd64
 GOPATH=$(HOME)/go
+IS_PUBLISH=$(APPVEYOR_REPO_TAG)
 
 default: test build
 
@@ -35,7 +36,7 @@ publish: test dist
 		LINUX_HASH=$$(shasum -a 256 dist/$$LINUX_FILENAME | awk '{print $$1}'); \
 		DARWIN_HASH=$$(shasum -a 256 dist/$$DARWIN_FILENAME | awk '{print $$1}'); \
 		shasum -a 256 dist/* > dist/hclq-shasums; \
-		if [ -n "$$TRAVIS_TAG" ]; then \
+		if [ -n "$(IS_PUBLISH)" ]; then \
 			ghr -u "$$GITHUB_USER" ${VERSION} dist/; \
 		fi; \
 	)

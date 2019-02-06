@@ -17,7 +17,7 @@ clean:
 	rm -rf dist/ vendor/
 
 dist: get
-	set -v; for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
+	for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
 	# Remove binary used for testing
 	rm -f dist/hclq
 

@@ -48,7 +48,7 @@ test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
 testci: get build
-	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..." | go-junit-report > dist/TEST.xml
+	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..." | go-junit-report | tee dist/TEST.xml
 
 
 .PHONY: get dist publish build install test clean

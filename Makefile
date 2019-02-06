@@ -2,11 +2,10 @@
 # This will return either the current tag, branch, or commit hash of this repo.
 VERSION=$(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
 LDFLAGS=-s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
-# Target the same OSes as Terraform
-GOOS=darwin freebsd linux openbsd solaris windows
-GOARCH=amd64
 GOPATH=$(HOME)/go
 IS_PUBLISH=$(APPVEYOR_REPO_TAG)
+BUILD_CMD=go build -ldflags="${LDFLAGS}"
+
 
 default: test build
 
@@ -17,7 +16,19 @@ clean:
 	rm -rf dist/ vendor/
 
 dist: get
-	for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
+	# Make available for all the same platforms as Terraform.
+	export GOOS=darwin  GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=freebsd GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=freebsd GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=freebsd GOARCH=arm  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=linux   GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=linux   GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=linux   GOARCH=arm  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=openbsd GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=openbsd GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=solaris GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=windows GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
+	export GOOS=windows GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	# Remove binary used for testing
 	rm -f dist/hclq
 

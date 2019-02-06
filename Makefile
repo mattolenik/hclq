@@ -16,7 +16,7 @@ clean:
 dist: get
 	set -v; for goos in ${GOOS}; do GOOS=$$goos GOARCH=${GOARCH} go build -ldflags="${LDFLAGS}" -o dist/hclq-$$goos-${GOARCH}; done
 	# Remove binary used for testing
-	rm dist/hclq
+	rm -f dist/hclq
 
 get:
 	go get -u github.com/golang/dep/cmd/dep

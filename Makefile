@@ -48,6 +48,7 @@ test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
 
 testci: get build
+	mkdir -p test
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..." | go-junit-report | tee test/TEST.xml
 
 

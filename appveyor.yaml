@@ -22,7 +22,7 @@ environment:
 build_script:
 - sh: make dist
 test_script:
-- sh: make test
+- sh: make testci
 deploy_script:
 - sh: >-
     #!/usr/bin/env bash
@@ -31,3 +31,6 @@ deploy_script:
     if [[ $APPVEYOR_REPO_TAG == true ]]; then
       make publish
     fi
+on_finish:
+  - sh: |
+      find "$APPVEYOR_BUILD_FOLDER" -type f -name 'TEST*.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"

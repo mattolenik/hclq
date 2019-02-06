@@ -26,6 +26,7 @@ get:
 	$(GOPATH)/bin/dep ensure
 	# GitHub release tool
 	go get -u github.com/tcnksm/ghr
+	go get -u github.com/jstemmer/go-junit-report
 
 install: get
 	go install -ldflags="${LDFLAGS}"
@@ -45,6 +46,9 @@ publish: test dist
 
 test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
+
+testci: get build
+	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..." | go-junit-report > dist/TEST.xml
 
 
 .PHONY: get dist publish build install test clean

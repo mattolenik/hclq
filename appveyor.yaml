@@ -1,7 +1,6 @@
 version: '{branch}-{build}'
 pull_requests:
   do_not_increment_build_number: true
-skip_non_tags: true
 image: Ubuntu1804
 clone_folder: /home/appveyor/go/src/github.com/mattolenik/hclq
 init:

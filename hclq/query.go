@@ -60,6 +60,7 @@ func (doc *HclDocument) Print(writer io.Writer) error {
 
 // QueryKeys performs a query and returns matching key or keys, no values.
 func (doc *HclDocument) QueryKeys(queryString string) (keys []string, err error) {
+	keys = []string{}
 	results, err := doc.Query(queryString)
 	if err != nil {
 		return nil, err

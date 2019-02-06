@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/mattolenik/hclq.svg?branch=master)](https://travis-ci.org/mattolenik/hclq)
+[![Build status](https://ci.appveyor.com/api/projects/status/a013fsit6rh0nk93?svg=true)](https://ci.appveyor.com/project/MattOlenik/hclq)
+
 
 # About
 

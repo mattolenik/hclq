@@ -16,11 +16,12 @@ func getOutput(obj interface{}, raw bool) (string, error) {
 		if isArray {
 			for _, item := range arr {
 				// Simple output, uses built-in %v, most useful for simple types.
-				result += fmt.Sprintf("%v", item) + " "
+				result += strings.Trim(fmt.Sprintf("%v", item), `"`) + " "
 			}
 			result = strings.TrimRight(result, " ")
 			return result, nil
 		}
+		return strings.Trim(fmt.Sprintf("%v", obj), `"`), nil
 	}
 	jsonBody, err := json.Marshal(obj)
 	if err != nil {

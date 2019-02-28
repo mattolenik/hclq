@@ -21,7 +21,12 @@ Note: hclq should be considered alpha software at this time.
 
 Install with auto-updating script:
 
-`curl -sL https://install.hclq.sh | sh`
+```
+curl -sSLo install.sh https://install.hclq.sh
+# Open with your editor and ensure the script is not malicious.
+$EDITOR install.sh
+sh install.sh
+```
 
 Install with Go:
 
@@ -169,21 +174,13 @@ data "baz" {
 
 ## Installation Details
 
-hclq is distributed as a single binary for Linux, macOS, and Windows. For now, an automated install and update script is provided. Homebrew support is planned for the future.
-
-As mentioned above, the following will automatically install or update hclq:
-
-`curl -sL https://install.hclq.sh | sh`
-
-The script can take two flags: `-q` for quiet mode, and `-d` to set the installation directory (the default is /usr/local/bin).
-
-The following quietly installs hclq into /usr/bin/
-
-`curl -sL https://install.hclq.sh | sh -s -- -q -d /usr/bin`
+hclq is distributed as a single binary for various platforms. For now, an automated install and update script is provided. Homebrew support is planned for the future.
 
 
 ## Project Status
 
-hclq should be considered alpha software and not suitable for production. If you really feel the need for it, snap to a specific release and be sure to test your use cases thoroughly.
+hclq can be said to be beta software. All or almost all of the features are present, with the most common use cases being supported.
+Changes to the CLI interface may occur but the general way the CLI works should remain the same.
 
-There's still trouble with some of the list processing, and full objects are not yet supported. More tests are needed, especially for the set commands.
+Whether or not hclq should be used "in production" depends on the criticality of its application and is up to your judgement.
+As with any unfamiliar open source project, inspect its source and test cases when evaluating if it meets your production standards.

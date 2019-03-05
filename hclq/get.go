@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// Get performs a query and returns a deserialized value
+// Get performs a query and returns a deserialized value. The query string is the same format as the command line.
 func (doc *HclDocument) Get(q string) (interface{}, error) {
 	resultPairs, err := doc.Query(q)
 	if err != nil {

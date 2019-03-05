@@ -83,19 +83,19 @@ func (doc *HclDocument) GetAsStringList(q string) ([]string, error) {
 		return nil, err
 	}
 	results := make([]string, len(list))
-	for _, item := range list {
+	for i, item := range list {
 		str, ok := item.(string)
 		if ok {
-			results = append(results, str)
+			results[i] = str
 			continue
 		}
 		num, ok := item.(int)
 		if ok {
-			results = append(results, strconv.Itoa(num))
+			results[i] = strconv.Itoa(num)
 			continue
 		}
 		// Fall back to general Go print formatting
-		results = append(results, fmt.Sprintf("%v", item))
+		results[i] = fmt.Sprintf("%v", item)
 	}
 	return results, nil
 }
@@ -108,10 +108,10 @@ func (doc *HclDocument) GetAsIntList(q string) ([]int, error) {
 		return nil, err
 	}
 	results := make([]int, len(list))
-	for _, item := range list {
+	for i, item := range list {
 		num, ok := item.(int)
 		if ok {
-			results = append(results, num)
+			results[i] = num
 			continue
 		}
 		str, ok := item.(string)
@@ -120,7 +120,7 @@ func (doc *HclDocument) GetAsIntList(q string) ([]int, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse '%s' into an integer", str)
 			}
-			results = append(results, num)
+			results[i] = num
 			continue
 		}
 		return nil, fmt.Errorf("value '%v' is not an integer and could not be parsed into one", item)

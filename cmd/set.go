@@ -126,7 +126,7 @@ func getTokenType(val string) token.Type {
 }
 
 func init() {
-	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "in-place", "i", false, "edit the input file in-place rather than printing to stdout, conflicts with --out")
+	SetCmd.PersistentFlags().BoolVarP(&config.ModifyInPlace, "in-place", "", false, "edit the input file in-place rather than printing to stdout, conflicts with --out")
 	SetCmd.AddCommand(AppendCmd)
 	SetCmd.AddCommand(PrependCmd)
 	SetCmd.AddCommand(ReplaceCmd)

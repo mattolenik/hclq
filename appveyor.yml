@@ -1,27 +1,38 @@
 version: '{branch}-{build}'
+
 pull_requests:
   do_not_increment_build_number: true
+
 image: Ubuntu1804
+
 clone_folder: /home/appveyor/go/src/github.com/mattolenik/hclq
+
+skip_commits:
+  files: [README.md, LICENSE]
+
 init:
 - sh: >-
     #!/usr/bin/env bash
     set -exuo pipefail
 
     if [[ ! -d /usr/local/go ]]; then
-      curl -sSJL https://dl.google.com/go/go1.11.5.linux-amd64.tar.gz | sudo tar xz -C /usr/local
+      curl -sSJL https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz | sudo tar xz -C /usr/local
     fi
 
     export PATH="$HOME/go/bin:/usr/local/go/bin:$PATH"
+
 environment:
   GITHUB_TOKEN:
     secure: 8ZC8xAVHLPN5ITAX22ceWft9ThYwEnkV0wCwES26qQ0C1ZBRml3tpVy2MjMrEuRz
   GITHUB_USER: mattolenik
   GITHUB_REPO: hclq
+
 build_script:
 - sh: make dist
+
 test_script:
 - sh: make testci
+
 deploy_script:
 - sh: >-
     #!/usr/bin/env bash
@@ -30,6 +41,7 @@ deploy_script:
     if [[ $APPVEYOR_REPO_TAG == true ]]; then
       make publish
     fi
+
 on_finish:
 - sh: |
     find "$APPVEYOR_BUILD_FOLDER" -type f -name 'TEST*.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"

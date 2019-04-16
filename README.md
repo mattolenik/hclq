@@ -1,6 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/a013fsit6rh0nk93?svg=true)](https://ci.appveyor.com/project/MattOlenik/hclq)
 
-
 # About
 
 hclq is a command line tool for querying and manipulating [HashiCorp HCL](https://github.com/hashicorp/hcl) files, such as those used by [Terraform](https://terraform.io) and other. It's similar to [jq](https://github.com/stedolan/jq), but for HCL. It can also modify HCL, with the option of modifying files in-place.
@@ -15,7 +14,7 @@ Use cases include:
 
 hclq outputs JSON for easy processing with other tools.
 
-Note: hclq should be considered alpha software at this time.
+Note: HCL2 support (as used in Terraform 0.12) is planned for this project.
 
 # Installation
 
@@ -180,7 +179,11 @@ hclq is distributed as a single binary for various platforms. For now, an automa
 ## Project Status
 
 hclq can be said to be beta software. All or almost all of the features are present, with the most common use cases being supported.
-Changes to the CLI interface may occur but the general way the CLI works should remain the same.
+Changes to the CLI interface may occur but the general way the CLI works should remain the same. If you run hclq in a production or near-production environment, you should pin your version of hclq to one that you have tested within your system.
 
 Whether or not hclq should be used "in production" depends on the criticality of its application and is up to your judgement.
 As with any unfamiliar open source project, inspect its source and test cases when evaluating if it meets your production standards.
+
+# Contributing
+
+Pull requests are very welcome! If you provide a fix, please try to provide a test case to prevent regressions. Pull requests without tests won't necessarily be rejected (especially for a trivial fix), but tests are helpful and greatly appreciated!

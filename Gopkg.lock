@@ -45,11 +45,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:efc0b1c2f3bff9854d96b12af5eb5fe35c97fa2e79c8efe091a8e38fd521bf23"
+  digest = "1:22799aea8fe96dd5693abdd1eaa14b1b29e3eafbdc7733fa155b3cb556c8a7ae"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
-  revision = "7547e83b2d85fd1893c7d76916f67689d761fecb"
+  revision = "67fc4837d267bc9bfd6e47f77783fcc3dffc68de"
 
 [[projects]]
   digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
@@ -68,20 +68,21 @@
   version = "v1.3.0"
 
 [[projects]]
-  digest = "1:35a609636092b0ddbf6d5a2d250c67a0476202ca8ebb0bb4d338b3744a522870"
+  digest = "1:f95b469161aa3bf30d515403ca1593f566e9d877f1c02479038ce55207118bf5"
   name = "github.com/valyala/fastjson"
   packages = [
     ".",
     "fastfloat",
   ]
   pruneopts = "UT"
-  revision = "ecda198f5d2b8600b6af67635a6b2bf6708e5a71"
-  version = "v1.4.0"
+  revision = "73ca3ce4bcd1cb08f60e48df25675b80c6a4e51e"
+  version = "v1.4.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/davecgh/go-spew/spew",
     "github.com/hashicorp/hcl/hcl/ast",
     "github.com/hashicorp/hcl/hcl/parser",
     "github.com/hashicorp/hcl/hcl/printer",

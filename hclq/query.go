@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/parser"
 	"github.com/hashicorp/hcl/hcl/printer"
@@ -86,27 +87,26 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 
 		case *ast.ListType:
 			listNode, ok := crumb.(query.IndexedCrumb)
-			if !ok {
-				return fmt.Errorf("unexpected query type")
-			}
-			// In this case, the query is for a specific index. Add it to results as a single item.
-			if listNode.Index() != nil {
-				listLength := len(node.List)
-				listIndex := *listNode.Index()
+			if ok {
+				// In this case, the query is for a specific index. Add it to results as a single item.
+				if listNode.Index() != nil {
+					listLength := len(node.List)
+					listIndex := *listNode.Index()
 
-				// Negative index means wrap around, with -1 being the last element
-				if listIndex < 0 {
-					listIndex = listLength + listIndex
+					// Negative index means wrap around, with -1 being the last element
+					if listIndex < 0 {
+						listIndex = listLength + listIndex
+					}
+					if listIndex < 0 || listIndex >= listLength {
+						return fmt.Errorf("index %d out of bounds on list %+v of len %d", listIndex, listNode.Key(), listLength)
+					}
+					val, ok := node.List[listIndex].(*ast.LiteralType)
+					if !ok {
+						return err
+					}
+					results = append(results, Result{key, val.Token.Value(), node})
+					return nil
 				}
-				if listIndex < 0 || listIndex >= listLength {
-					return fmt.Errorf("index %d out of bounds on list %+v of len %d", listIndex, listNode.Key(), listLength)
-				}
-				val, ok := node.List[listIndex].(*ast.LiteralType)
-				if !ok {
-					return err
-				}
-				results = append(results, Result{key, val.Token.Value(), node})
-				return nil
 			}
 			// Otherwise query is for all items. Add them to results as a new list.
 			values := []interface{}{}
@@ -118,10 +118,8 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 			results = append(results, Result{key, values, node})
 
 			return nil
-		// TODO: full objects
-		//case *ast.ObjectItem:
 		default:
-			fmt.Println(node)
+			return fmt.Errorf("unrecognized node type")
 		}
 		return nil
 	})
@@ -174,6 +172,7 @@ func walk(
 		return action(node, strings.Join(keyTrail, "."), query.Parts[crumbIndex])
 
 	case *ast.ObjectType:
+		spew.Dump(node)
 		return walk(node.List, query, keyTrail, crumbIndex, action)
 
 	default:

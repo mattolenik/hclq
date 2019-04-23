@@ -14,7 +14,7 @@ Use cases include:
 
 hclq outputs JSON for easy processing with other tools.
 
-Note: HCL2 support (as used in Terraform 0.12) is planned for this project.
+Note: HCL2 support (as used in Terraform 0.12) is planned for this project, see issue [#11](/../../issues/11)
 
 # Installation
 

@@ -4,9 +4,11 @@
 # Use -q for quiet output
 set -e
 
-E_NO_OS=3
+[ -n "${DEBUG:-}" ] && set -x
+
 E_MISSING_ARG=4
 E_MISSING_DIR=5
+E_NO_ARCH=6
 
 help() {
   cat <<EOF
@@ -26,12 +28,16 @@ println() {
 }
 
 platform_check() {
-  # os variable also used to download binary
-  os="$(uname | awk '{print tolower($0)}')"
-  case "$os" in
-    darwin) ;;
-    linux) ;;
-    *) println "hclq is not available for this OS" && exit $E_NO_OS;;
+  # OS variable also used to download binary
+  OS="$(uname | awk '{print tolower($0)}')"
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    amd64) ARCH=amd64;;
+    x86_64) ARCH=amd64;;
+    i386) ARCH=386;;
+    i686) ARCH=386;;
+    arm) ARCH=arm;;
+    *) println "Unsupported or undetected platform: '$ARCH'" && exit $E_NO_ARCH;;
   esac
 }
 
@@ -50,6 +56,11 @@ main() {
 
   destination="${destination:-/usr/local/bin}"
   [ ! -d "$destination" ] && println "Install directory '$destination' does not exist" && exit $E_MISSING_DIR
+
+  if touch "$destination" | grep -q "Permission denied"; then
+    println "Permission denied for installing into $destination"
+    exit 1
+  fi
 
   # Final binary location
   hclq_bin="$destination/hclq"
@@ -73,7 +84,10 @@ main() {
   println "$msg"
 
   # Extract URL for actual binary
-  hclq_url=$(printf '%s' "$latest" | grep -i "browser_download_url.*$os" | awk -F'"' '{print $4}')
+  hclq_url=$(printf '%s' "$latest" | grep -i "browser_download_url.*$OS-$ARCH" | awk -F'"' '{print $4}')
+  if [ -z "$hclq_url" ]; then
+    println "hclq is not available for OS '$OS' on architecture '$ARCH'" && exit $E_NO_ARCH
+  fi
   # Only include --silent argument if quiet is defined
   curl ${quiet+--silent} --progress-bar -JLo "$hclq_bin" "$hclq_url"
   chmod +x "$hclq_bin"

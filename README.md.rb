@@ -189,16 +189,7 @@ data "baz" {
 The script `install.sh` (which is served at https://install.hclq.sh) can take the following options:
 
 ```
-Install script for hclq – https://hclq.sh
-
-Options:
-         -d <dir>    specify install directory, defaults to /usr/local/bin
-         -a <GOARCH> set specific architecture, values correspond to GOARCH values
-         -o <GOOS>   set specific OS, values correspond to GOOS values
-         -q          quiet mode, will not print output
-         -h          show this help message
-
-```
+<%= %x(./install.sh -h) %>```
 
 
 

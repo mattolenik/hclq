@@ -2,7 +2,6 @@
 # Installs or upgrades hclq, by default installing into /usr/local/bin
 # This can be overridden with the -d parameter, see help()
 set -e
-
 [ -n "${DEBUG:-}" ] && set -x
 
 REPO="mattolenik/hclq"
@@ -22,11 +21,11 @@ EOF
 }
 
 println() {
-  [ -z "$quiet" ] && printf "%s\\n" "$*"
+  [ -z "$QUIET" ] && printf "%s\\n" "$*"
 }
 
 fail() {
-  [ -z "$quiet" ] && printf "%s\\n" "$*" 1>&2
+  [ -z "$QUIET" ] && printf "%s\\n" "$*" 1>&2
   exit 1
 }
 
@@ -49,8 +48,8 @@ main() {
 
   while getopts ":qhdao:" opt; do
     case $opt in
-      q) quiet=true ;;
-      d) destination="$OPTARG" ;;
+      q) QUIET=true ;;
+      d) DESTINATION="$OPTARG" ;;
       a) ARCH="$OPTARG" ;;
       o) OS="$OPTARG" ;;
       h) help && exit 0 ;;
@@ -59,16 +58,16 @@ main() {
     esac
   done
 
-  destination="${destination:-/usr/local/bin}"
-  [ ! -d "$destination" ] && fail "Install directory '$destination' does not exist"
+  DESTINATION="${DESTINATION:-/usr/local/bin}"
+  [ ! -d "$DESTINATION" ] && fail "Install directory '$DESTINATION' does not exist"
 
   SUDO_CMD=""
-  if touch "$destination" 2>&1 | grep -q "Permission denied"; then
+  if touch "$DESTINATION" 2>&1 | grep -q "Permission denied"; then
     SUDO_CMD=sudo
   fi
 
   # Final binary location
-  hclq_bin="$destination/hclq"
+  hclq_bin="$DESTINATION/hclq"
 
   if command -v "$hclq_bin" > /dev/null 2>&1; then
     msg="Upgrading $hclq_bin"
@@ -95,8 +94,8 @@ main() {
   fi
   tmp_bin="$(mktemp)"
   trap 'rm -f $tmp_bin' EXIT
-  # Only include --silent argument if quiet is defined
-  curl ${quiet+--silent} --progress-bar -JLo "$tmp_bin" "$hclq_url"
+  # Only include --silent argument if QUIET is defined
+  curl ${QUIET+--silent} --progress-bar -JLo "$tmp_bin" "$hclq_url"
   chmod +x "$tmp_bin"
   $SUDO_CMD mv -f "$tmp_bin" "$hclq_bin"
 

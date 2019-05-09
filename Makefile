@@ -7,7 +7,7 @@ IS_PUBLISH=$(APPVEYOR_REPO_TAG)
 BUILD_CMD=go build -ldflags="${LDFLAGS}"
 
 
-default: test build
+default: test build readme
 
 build:
 	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
@@ -43,12 +43,15 @@ get:
 install: get
 	go install -ldflags="${LDFLAGS}"
 
-publish: test dist
+publish: readme test dist
 	( \
 		if [ -n "$(IS_PUBLISH)" ]; then \
 			ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} dist/; \
 		fi; \
 	)
+
+readme:
+	erb README.md.rb > README.md
 
 test: get build
 	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."

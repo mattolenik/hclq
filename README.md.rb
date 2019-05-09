@@ -2,7 +2,7 @@
 
 # About
 
-hclq is a command line tool for querying and manipulating [HashiCorp HCL](https://github.com/hashicorp/hcl) files, such as those used by [Terraform](https://terraform.io) and other. It's similar to [jq](https://github.com/stedolan/jq), but for HCL. It can also modify HCL, with the option of modifying files in-place.
+hclq is a command line tool for querying and manipulating [HashiCorp HCL](https://github.com/hashicorp/hcl) files, such as those used by [Terraform](https://terraform.io), [Consul](https://consul.io), [Nomad](https://nomadproject.io), and [Vault](https://vaultproject.io). It's similar to [jq](https://github.com/stedolan/jq), but for HCL. It can also modify HCL, with the option of modifying files in-place.
 
 Use cases include:
 
@@ -12,7 +12,7 @@ Use cases include:
  * Custom manipulation for wrappers or other utilities
  * A robust alternative to parsing files with grep, sed, etc
 
-hclq outputs JSON for easy processing with other tools.
+hclq outputs JSON for easy processing with other tools, such as [jq](https://stedolan.github.io/jq).
 
 Note: HCL2 support (as used in Terraform 0.12) is planned for this project, see issue [#11](/../../issues/11)
 

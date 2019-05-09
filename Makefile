@@ -50,7 +50,9 @@ publish: readme test dist
 		fi; \
 	)
 
-readme:
+readme: README.md
+
+README.md: README.md.rb
 	erb README.md.rb > README.md
 
 test: get build

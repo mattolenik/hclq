@@ -25,7 +25,7 @@ Latest releases are available here on Github. hclq is a single binary, installat
 
 # Auto-Updating Script
 
-Install with auto-updating script:
+Install with auto-updating script. You may be prompted with `sudo` if your user doesn't have permission to write to the default install directory. Either enter your password or re-run with the `-d` option to specify a different install directory.
 
 ```
 # Download the script
@@ -200,7 +200,7 @@ Options:
 
 ```
 
-
+If the DEBUG environment variable is set, the script will enable `set -x` to aid in debugging.
 
 ## Project Status
 

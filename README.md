@@ -38,7 +38,7 @@ less install.sh
 sh install.sh
 ```
 
-Or just download `install.sh` right from the repo and run that.
+Or just download [install.sh](https://raw.githubusercontent.com/mattolenik/hclq/master/install.sh) right from the repo and run that.
 
 ## Install with Go
 

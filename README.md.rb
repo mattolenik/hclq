@@ -23,7 +23,7 @@ Note: HCL2 support (as used in Terraform 0.12) is planned for this project, see 
 Latest releases are available here on Github. hclq is a single binary, installation is as simple as placing the binary in your PATH.
 
 
-# Auto-Updating Script
+## Auto-Updating Script
 
 Install with auto-updating script. You may be prompted with `sudo` if your user doesn't have permission to write to the default install directory. Either enter your password or re-run with the `-d` option to specify a different install directory.
 
@@ -31,7 +31,8 @@ Install with auto-updating script. You may be prompted with `sudo` if your user 
 # Download the script
 curl -sSLo install.sh https://install.hclq.sh
 
-# Inspect the script before executing, as is good practice for code from the internet, regardless of trust!
+# Inspect the script before executing, as is good practice
+# for code from the internet, regardless of trust!
 less install.sh
 
 # Run it!

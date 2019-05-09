@@ -1,34 +1,37 @@
 #!/bin/sh
 # Installs or upgrades hclq, by default installing into /usr/local/bin
-# This can be overridden with the -d parameter
-# Use -q for quiet output
+# This can be overridden with the -d parameter, see help()
 set -e
 
 [ -n "${DEBUG:-}" ] && set -x
 
-E_MISSING_ARG=4
-E_MISSING_DIR=5
-E_NO_ARCH=6
+REPO="mattolenik/hclq"
 
 help() {
   cat <<EOF
 Install script for hclq – https://hclq.sh
 
 Options:
-         -d <dir>   specify install directory, defaults to /usr/local/bin
-         -q         quiet mode, will not print output
-         -h         show this help message
+         -d <dir>    specify install directory, defaults to /usr/local/bin
+         -a <GOARCH> set specific architecture, values correspond to GOARCH values
+         -o <GOOS>   set specific OS, values correspond to GOOS values
+         -q          quiet mode, will not print output
+         -h          show this help message
 
 EOF
-exit 1
 }
 
 println() {
-  [ -z "$quiet" ] && printf "%s\\n" "$1"
+  [ -z "$quiet" ] && printf "%s\\n" "$*"
+}
+
+fail() {
+  [ -z "$quiet" ] && printf "%s\\n" "$*" 1>&2
+  exit 1
 }
 
 platform_check() {
-  # OS variable also used to download binary
+  # OS and ARCH variables also used to download binary in main function
   OS="$(uname | awk '{print tolower($0)}')"
   ARCH="$(uname -m)"
   case "$ARCH" in
@@ -37,29 +40,31 @@ platform_check() {
     i386) ARCH=386;;
     i686) ARCH=386;;
     arm) ARCH=arm;;
-    *) println "Unsupported or undetected platform: '$ARCH'" && exit $E_NO_ARCH;;
+    *) fail "Unsupported or undetected platform: '$ARCH'";;
   esac
 }
 
 main() {
   platform_check
 
-  while getopts ":qhd:" opt; do
+  while getopts ":qhdao:" opt; do
     case $opt in
       q) quiet=true ;;
       d) destination="$OPTARG" ;;
-      h) help ;;
-      \?) println "Invalid option -$OPTARG" ;;
-      :) println "Option -$OPTARG requires an argument" && exit $E_MISSING_ARG
+      a) ARCH="$OPTARG" ;;
+      o) OS="$OPTARG" ;;
+      h) help && exit 0 ;;
+      \?) println "Invalid option -$opt" ;;
+      :) fail "Option -$opt requires an argument";;
     esac
   done
 
   destination="${destination:-/usr/local/bin}"
-  [ ! -d "$destination" ] && println "Install directory '$destination' does not exist" && exit $E_MISSING_DIR
+  [ ! -d "$destination" ] && fail "Install directory '$destination' does not exist"
 
-  if touch "$destination" | grep -q "Permission denied"; then
-    println "Permission denied for installing into $destination"
-    exit 1
+  SUDO_CMD=""
+  if touch "$destination" 2>&1 | grep -q "Permission denied"; then
+    SUDO_CMD=sudo
   fi
 
   # Final binary location
@@ -73,7 +78,7 @@ main() {
   fi
 
   # Get latest release info in JSON
-  latest="$(curl -s https://api.github.com/repos/mattolenik/hclq/releases/latest)"
+  latest="$(curl -s https://api.github.com/repos/$REPO/releases/latest)"
 
   # Get the latest tag
   tag="$(printf '%s' "$latest" | grep tag_name | awk -F'"' '{print $4}')"
@@ -86,11 +91,14 @@ main() {
   # Extract URL for actual binary
   hclq_url=$(printf '%s' "$latest" | grep -i "browser_download_url.*$OS-$ARCH" | awk -F'"' '{print $4}')
   if [ -z "$hclq_url" ]; then
-    println "hclq is not available for OS '$OS' on architecture '$ARCH'" && exit $E_NO_ARCH
+    fail "hclq is not available for OS '$OS' on architecture '$ARCH'"
   fi
+  tmp_bin="$(mktemp)"
+  trap 'rm -f $tmp_bin' EXIT
   # Only include --silent argument if quiet is defined
-  curl ${quiet+--silent} --progress-bar -JLo "$hclq_bin" "$hclq_url"
-  chmod +x "$hclq_bin"
+  curl ${quiet+--silent} --progress-bar -JLo "$tmp_bin" "$hclq_url"
+  chmod +x "$tmp_bin"
+  $SUDO_CMD mv -f "$tmp_bin" "$hclq_bin"
 
   println "$hclq_bin now at version $("$hclq_bin" --version)"
 }

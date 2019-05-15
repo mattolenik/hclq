@@ -51,7 +51,7 @@ publish: $(GHR) test dist
 
 readme: README.md
 README.md: README.md.rb
-	@[ ! -f .git/hooks/pre-commit ] && printf "Missing pre-commit hook for readme, be sure to copy it from hclq-pages repo" && exit 1
+	@if [ ! -f .git/hooks/pre-commit ]; then printf "Missing pre-commit hook for readme, be sure to copy it from hclq-pages repo"; exit 1; fi
 	erb README.md.rb > README.md
 
 test: $(GO_JUNIT_REPOT) build

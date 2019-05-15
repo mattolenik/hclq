@@ -12,7 +12,7 @@ Use cases include:
  * Custom manipulation for wrappers or other utilities
  * A robust alternative to parsing files with grep, sed, etc
 
-hclq outputs JSON for easy processing with other tools, such as [jq](https://stedolan.github.io/jq).
+hclq can output JSON for processing with other tools, such as [jq](https://stedolan.github.io/jq), or a raw format for shell processing. See the `--raw` option.
 
 Note: HCL2 support (as used in Terraform 0.12) is planned for this project, see issue [#11](/../../issues/11)
 

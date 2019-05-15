@@ -1,7 +1,7 @@
-vendor/
 .idea/
 dist/
 ./hclq
 test/
 .vscode/
 /upx
+vendor/tools/bin

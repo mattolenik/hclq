@@ -1,24 +1,26 @@
 # Version and linker flags
 # This will return either the current tag, branch, or commit hash of this repo.
-VERSION=$(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
-LDFLAGS=-s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
-GOPATH=$(HOME)/go
-IS_PUBLISH=$(APPVEYOR_REPO_TAG)
-BUILD_CMD=go build -ldflags="${LDFLAGS}"
-
+VERSION         = $(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty); printf $$ver))
+LDFLAGS         = -s -w -X github.com/mattolenik/hclq/cmd.version=${VERSION}
+PROJECT_ROOT    = $(shell cd -P -- '$(shell dirname -- "$0")' && pwd -P)
+IS_PUBLISH      = $(APPVEYOR_REPO_TAG)
+BUILD_CMD       = go build -mod=vendor -ldflags="${LDFLAGS}"
+# Build tools
+GHR             := github.com/tcnksm/ghr
+GO_JUNIT_REPORT := github.com/jstemmer/go-junit-report
 
 default: test build readme
 
 build:
-	go build -i -ldflags="${LDFLAGS}" -gcflags='-N -l' -o dist/hclq
+	$(BUILD_CMD) -i -gcflags='-N -l' -o dist/hclq
 
 clean:
-	rm -rf dist/ vendor/
+	rm -rf dist/
 
-dist: get
+dist:
 	# Delete files from testing
 	rm -rf dist && mkdir -p dist
-	# Make available for all the same platforms as Terraform.
+	# Make available for all the same platforms as Terraform
 	export GOOS=darwin  GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	export GOOS=freebsd GOARCH=amd64; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	export GOOS=freebsd GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
@@ -33,34 +35,30 @@ dist: get
 	export GOOS=windows GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	cd dist && shasum -a 256 hclq-* > hclq-shasums
 
-get:
-	go get -u github.com/golang/dep/cmd/dep
-	$(GOPATH)/bin/dep ensure
-	# GitHub release tool
-	go get -u github.com/tcnksm/ghr
-	go get -u github.com/jstemmer/go-junit-report
-
 install: get
-	go install -ldflags="${LDFLAGS}"
+	go install -mod=vendor-ldflags="${LDFLAGS}"
 
-publish: readme test dist
-	( \
-		if [ -n "$(IS_PUBLISH)" ]; then \
-			ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} dist/; \
-		fi; \
-	)
+# GitHub Release Tool
+$(GHR):
+	go install -mod=vendor $(GHR)
+
+# Translates Go test results to JUnit XML
+$(GO_JUNIT_REPORT):
+	go install -mod=vendor $(GO_JUNIT_REPORT)
+
+publish: $(GHR) test dist
+	[ -n "$(IS_PUBLISH)" ] && ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} dist/
 
 readme: README.md
-
 README.md: README.md.rb
+	@[ ! -f .git/hooks/pre-commit ] && printf "Missing pre-commit hook for readme, be sure to copy it from hclq-pages repo" && exit 1
 	erb README.md.rb > README.md
 
-test: get build
-	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..."
-
-testci: get build
+test: $(GO_JUNIT_REPOT) build
+	#!/usr/bin/env bash
+	set -euo pipefail
 	mkdir -p test
-	HCLQ_BIN=$$(pwd)/dist/hclq go test -v "./..." | go-junit-report | tee test/TEST.xml
+	HCLQ_BIN=$(PROJECT_ROOT)/dist/hclq go test -mod=vendor -v "./..." | tee >(go-junit-report > test/TEST.xml)
 
 
-.PHONY: get dist publish build install test clean
+.PHONY: build clean dist install publish test testci

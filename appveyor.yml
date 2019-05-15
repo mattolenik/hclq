@@ -9,27 +9,26 @@ pull_requests:
 
 image: Ubuntu1804
 
-clone_folder: /home/appveyor/go/src/github.com/mattolenik/hclq
-
-skip_commits:
-  files: [README.md, LICENSE]
+clone_folder: /home/appveyor/hclq
 
 init:
-- sh: >-
+- sh: |
     #!/usr/bin/env bash
-    set -exuo pipefail
-
-    if [[ ! -d /usr/local/go ]]; then
-      curl -sSJL https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz | sudo tar xz -C /usr/local
+    set -euo pipefail
+    # Install Go if it isn't there or if it's out of date.
+    if ! command -v go &>/dev/null || [[ "$(go version | awk '{print $3}')" != "$GO_VERSION" ]]; then
+      curl -sSJL https://dl.google.com/go/${GO_VERSION}.linux-amd64.tar.gz | sudo tar xz -C /usr/local
     fi
-
     export PATH="$HOME/go/bin:/usr/local/go/bin:$PATH"
+    # Print environment variables for debugging
+    env
 
 environment:
   GITHUB_TOKEN:
     secure: 8ZC8xAVHLPN5ITAX22ceWft9ThYwEnkV0wCwES26qQ0C1ZBRml3tpVy2MjMrEuRz
   GITHUB_USER: mattolenik
   GITHUB_REPO: hclq
+  GO_VERSION: go1.12.5
 
 build_script:
 - sh: make dist
@@ -38,14 +37,13 @@ test_script:
 - sh: make testci
 
 deploy_script:
-- sh: >-
-    #!/usr/bin/env bash
-    set -exuo pipefail
-
-    if [[ $APPVEYOR_REPO_TAG == true ]]; then
+- sh: |
+    # If we're in AppVeyor and this branch is a tag, it means it should be published.
+    if [ "$APPVEYOR_REPO_TAG" == "true" ]; then
       make publish
     fi
 
 on_finish:
 - sh: |
+    # Publish test results to AppVeyor
     find "$APPVEYOR_BUILD_FOLDER" -type f -name 'TEST*.xml' -print0 | xargs -0 -I '{}' curl -F 'file=@{}' "https://ci.appveyor.com/api/testresults/junit/$APPVEYOR_JOB_ID"

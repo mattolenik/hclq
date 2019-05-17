@@ -6,10 +6,10 @@ PROJECT_ROOT    = $(shell cd -P -- '$(shell dirname -- "$0")' && pwd -P)
 IS_PUBLISH      = $(APPVEYOR_REPO_TAG)
 BUILD_CMD       = go build -mod=vendor -ldflags="${LDFLAGS}"
 # Build tools
-GHR             := github.com/tcnksm/ghr
-GO_JUNIT_REPORT := github.com/jstemmer/go-junit-report
+GHR             = vendor/github.com/tcnksm/ghr
+GO_JUNIT_REPORT = vendor/github.com/jstemmer/go-junit-report
 
-default: test build readme
+default: test build README.md
 
 build:
 	$(BUILD_CMD) -i -gcflags='-N -l' -o dist/hclq
@@ -35,7 +35,7 @@ dist:
 	export GOOS=windows GOARCH=386  ; $(BUILD_CMD) -o dist/hclq-$$GOOS-$$GOARCH
 	cd dist && shasum -a 256 hclq-* > hclq-shasums
 
-install: get
+install:
 	go install -mod=vendor-ldflags="${LDFLAGS}"
 
 # GitHub Release Tool
@@ -46,19 +46,16 @@ $(GHR):
 $(GO_JUNIT_REPORT):
 	go install -mod=vendor $(GO_JUNIT_REPORT)
 
-publish: $(GHR) test dist
+publish: $(GHR) build test dist
 	[ -n "$(IS_PUBLISH)" ] && ghr -replace -delete -u "$$GITHUB_USER" ${VERSION} dist/
 
-readme: README.md
 README.md: README.md.rb
-	@if [ ! -f .git/hooks/pre-commit ]; then printf "Missing pre-commit hook for readme, be sure to copy it from hclq-pages repo"; exit 1; fi
+	@[ ! -f .git/hooks/pre-commit ] && echo "Missing pre-commit hook for readme, be sure to copy it from hclq-pages repo" && exit 1
 	erb README.md.rb > README.md
 
-test: $(GO_JUNIT_REPOT) build
-	#!/usr/bin/env bash
-	set -euo pipefail
+test: $(GO_JUNIT_REPORT)
 	mkdir -p test
-	HCLQ_BIN=$(PROJECT_ROOT)/dist/hclq go test -mod=vendor -v "./..." | tee >(go-junit-report > test/TEST.xml)
+	HCLQ_BIN=$(PROJECT_ROOT)/dist/hclq go test -mod=vendor -v "./..." | tee $(tty) | go-junit-report > test/TEST.xml
 
 
 .PHONY: build clean dist install publish test testci

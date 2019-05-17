@@ -20,12 +20,21 @@ github.com/hashicorp/hcl/hcl/strconv
 github.com/hashicorp/hcl/hcl/scanner
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/inconshreveable/mousetrap v1.0.0
-github.com/inconshreveable/mousetrap
+# github.com/jawher/mow.cli v1.1.0
+github.com/jawher/mow.cli
+github.com/jawher/mow.cli/internal/container
+github.com/jawher/mow.cli/internal/flow
+github.com/jawher/mow.cli/internal/fsm
+github.com/jawher/mow.cli/internal/lexer
+github.com/jawher/mow.cli/internal/parser
+github.com/jawher/mow.cli/internal/values
+github.com/jawher/mow.cli/internal/matcher
 # github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024
 github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
 github.com/jstemmer/go-junit-report/parser
+# github.com/logrusorgru/aurora v0.0.0-20190428105938-cea283e61946
+github.com/logrusorgru/aurora
 # github.com/mattn/go-colorable v0.1.1
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.5
@@ -36,10 +45,6 @@ github.com/mitchellh/colorstring
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/spf13/cobra v0.0.0-20190109003409-7547e83b2d85
-github.com/spf13/cobra
-# github.com/spf13/pflag v1.0.3
-github.com/spf13/pflag
 # github.com/stretchr/testify v1.3.0
 github.com/stretchr/testify/assert
 # github.com/tcnksm/ghr v0.12.1

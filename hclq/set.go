@@ -1,8 +1,12 @@
 package hclq
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/hashicorp/hcl/hcl/token"
+	//"github.com/davecgh/go-spew/spew"
 )
 
 // Set traverses the document and calls either listAction or valueAction depending
@@ -31,6 +35,26 @@ func (doc *HclDocument) Set(queryString string, listAction func(*ast.ListType) e
 			}
 			continue
 		}
+	}
+	return nil
+}
+
+func (doc *HclDocument) Set2(queryString string, newValue string) error {
+	resultPairs, err := doc.Query(queryString)
+	if err != nil {
+		return err
+	}
+
+	for _, pair := range resultPairs {
+		newValue = fmt.Sprintf(`hclqrootunique { value = %s }`, newValue)
+		node, err :=  FromReader(strings.NewReader(newValue))
+		if err != nil {
+			return err
+		}
+		list, _ := node.FileNode.Node.(*ast.ObjectList)
+		val, _ := list.Items[0].Val.(*ast.ObjectType)
+		newVal := val.List.Items[0].Val
+		pair.Setter(newVal)
 	}
 	return nil
 }

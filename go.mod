@@ -3,6 +3,7 @@ module github.com/mattolenik/hclq
 go 1.12
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/hashicorp/hcl v0.0.0-20180906183839-65a6292f0157
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024

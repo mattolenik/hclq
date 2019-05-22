@@ -21,20 +21,9 @@ var SetCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 
 	RunE: func(cmd *cobra.Command, args []string) error {
+		queryString := args[0]
 		newValue := args[1]
-		return performSet(args[0],
-			func(list *ast.ListType) error {
-				listNode, err := hclq.HclListFromJSON(newValue)
-				if err != nil {
-					return err
-				}
-				list.List = listNode.List
-				return nil
-			}, func(tok *token.Token) error {
-				tok.Text = `"` + newValue + `"`
-				tok.Type = getTokenType(newValue)
-				return nil
-			})
+		return performSet2(queryString, newValue)
 	},
 }
 
@@ -132,6 +121,32 @@ func init() {
 	SetCmd.AddCommand(ReplaceCmd)
 	RootCmd.AddCommand(SetCmd)
 	ReplaceCmd.Flags().IntVarP(&config.ReplaceNTimes, "replace-n", "n", -1, "Limit replacements to n occurrences")
+}
+
+func performSet2(queryString string, newValue string) error {
+	err := validateOutputConfig()
+	if err != nil {
+		return err
+	}
+	reader, err := getInputReader()
+	if err != nil {
+		return err
+	}
+	doc, err := hclq.FromReader(reader)
+	if err != nil {
+		return err
+	}
+	err = doc.Set2(queryString, newValue)
+	if err != nil {
+		return err
+	}
+	writer, err := getOutputWriter()
+	if err != nil {
+		return err
+	}
+	defer writer.Close()
+	doc.Print(writer)
+	return nil
 }
 
 func performSet(queryString string, listAction func(*ast.ListType) error, valueAction func(*token.Token) error) error {

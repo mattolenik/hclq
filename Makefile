@@ -76,7 +76,7 @@ dist/hclq-windows-amd64:
 	cd "$(@D)" && shasum -a 256 "$@" >> hclq-shasums
 
 install:
-	go install -mod=vendor-ldflags="${LDFLAGS}"
+	go install -mod=vendor ldflags="${LDFLAGS}"
 
 # GitHub Release Tool
 $(GHR):

@@ -24,23 +24,24 @@ var GetCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		result, err := doc.Get(args[0])
+		results, err := doc.GetRaw(args[0])
 		if err != nil {
 			return err
 		}
-		output, err := getOutput(result, config.UseRawOutput)
-		if err != nil {
-			return err
-		}
+		var writer io.Writer
 		if config.OutputFile != "" {
 			file, err := os.Create(config.OutputFile)
 			if err != nil {
 				return err
 			}
 			defer file.Close()
-			fmt.Fprintln(file, output)
+			writer = file
 		} else {
-			fmt.Println(output)
+			writer = os.Stdout
+		}
+		err = PrintHCL(writer, JSON, Separate, results...)
+		if err != nil {
+			return err
 		}
 		return nil
 	},
@@ -75,7 +76,7 @@ var GetRawCmd = &cobra.Command{
 		} else {
 			writer = os.Stdout
 		}
-		err = PrintHCL(writer, results...)
+		err = PrintHCL(writer, HCL, Separate, results...)
 		if err != nil {
 			return err
 		}

@@ -12,7 +12,7 @@ func (doc *HclDocument) GetRaw(q string) ([]ast.Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	results := make([]ast.Node, len(resultPairs))
+	results := []ast.Node{}
 	for _, pair := range resultPairs {
 		results = append(results, pair.Node)
 	}

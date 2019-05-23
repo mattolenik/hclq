@@ -9,15 +9,62 @@ import (
 	"strings"
 
     "github.com/hashicorp/hcl/hcl/ast"
-	//"github.com/hashicorp/hcl/hcl/parser"
+	"github.com/hashicorp/hcl"
     "github.com/hashicorp/hcl/hcl/printer"
+	//"github.com/davecgh/go-spew/spew"
 )
 
-func PrintHCL(writer io.Writer, nodes ...ast.Node) error {
-	for _, node := range nodes {
-		err := printer.Fprint(writer, node)
+type PrintStyle int
+type MergeMethod int
+
+const (
+	HCL PrintStyle = iota
+	JSON
+	Raw
+)
+
+const (
+	Combined = iota
+	Separate
+)
+
+func PrintHCL(writer io.Writer, style PrintStyle, method MergeMethod, nodes ...ast.Node) error {
+	var node ast.Node
+	if len(nodes) == 0 {
+		return fmt.Errorf("must provide at least one ast.Node")
+	} else if len(nodes) > 1 {
+		node = &ast.ListType { List: nodes, }
+	} else {
+		node = nodes[0]
+	}
+	switch style {
+	case JSON:
+		var decoded interface{}
+		if len(nodes) > 1 {
+			decoded = []map[string]interface{}{}
+		} else {
+			decoded = map[string]interface{}{}
+		}
+		err := hcl.DecodeObject(&decoded, node)
 		if err != nil {
 			return err
+		}
+		json, err := json.Marshal(&decoded)
+		if err != nil {
+			return err
+		}
+		_, err = writer.Write(json)
+		writer.Write([]byte("\n"))
+		if err != nil {
+			return err
+		}
+	case HCL:
+		for _, node := range nodes {
+			err := printer.Fprint(writer, node)
+			writer.Write([]byte("\n"))
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

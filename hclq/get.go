@@ -3,7 +3,21 @@ package hclq
 import (
 	"fmt"
 	"strconv"
+
+    "github.com/hashicorp/hcl/hcl/ast"
 )
+
+func (doc *HclDocument) GetRaw(q string) ([]ast.Node, error) {
+	resultPairs, err := doc.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	results := make([]ast.Node, len(resultPairs))
+	for _, pair := range resultPairs {
+		results = append(results, pair.Node)
+	}
+	return results, nil
+}
 
 // Get performs a query and returns a deserialized value. The query string is the same format as the command line.
 func (doc *HclDocument) Get(q string) (interface{}, error) {
@@ -11,10 +25,7 @@ func (doc *HclDocument) Get(q string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(resultPairs) == 1 {
-		return resultPairs[0].Value, nil
-	}
-	results := []interface{}{}
+	results := make([]interface{}, len(resultPairs))
 	for _, pair := range resultPairs {
 		results = append(results, pair.Value)
 	}

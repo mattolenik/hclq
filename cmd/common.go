@@ -7,7 +7,21 @@ import (
 	"io"
 	"os"
 	"strings"
+
+    "github.com/hashicorp/hcl/hcl/ast"
+	//"github.com/hashicorp/hcl/hcl/parser"
+    "github.com/hashicorp/hcl/hcl/printer"
 )
+
+func PrintHCL(writer io.Writer, nodes ...ast.Node) error {
+	for _, node := range nodes {
+		err := printer.Fprint(writer, node)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func getOutput(obj interface{}, raw bool) (string, error) {
 	if raw {

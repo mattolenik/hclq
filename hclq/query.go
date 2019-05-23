@@ -19,6 +19,7 @@ type Result struct {
     Node  ast.Node
     Parent  ast.Node
     Setter func(value ast.Node)
+    Getter func() ast.Node
 }
 
 // HclDocument represents an HCL document in memory.
@@ -83,7 +84,8 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
     err = walk(doc.FileNode.Node, qry, []string{}, 0, func(astNode ast.Node, key string, crumb query.Crumb, parent ast.Node, replaceFunc func(newNode ast.Node)) error {
         switch node := astNode.(type) {
         case *ast.LiteralType:
-            results = append(results, Result{key, node.Token.Value(), node, parent, replaceFunc})
+            g := func() ast.Node { return node }
+            results = append(results, Result{key, node.Token.Value(), node, parent, replaceFunc, g})
 
         case *ast.ListType:
             listNode, ok := crumb.(query.IndexedCrumb)
@@ -106,9 +108,11 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
                 if !ok {
                     return err
                 }
-                results = append(results, Result{key, val.Token.Value(), node, parent, replaceFunc})
+                g := func() ast.Node { return val }
+                results = append(results, Result{key, val.Token.Value(), node, parent, replaceFunc, g})
                 return nil
             }
+            // TODO: slurp equivalent? merge or non-merge list output
             // Otherwise query is for all items. Add them to results as a new list.
             values := []interface{}{}
             for _, item := range node.List {
@@ -116,11 +120,13 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
                     values = append(values, literal.Token.Value())
                 }
             }
-            results = append(results, Result{key, values, node, parent, replaceFunc})
+            g := func() ast.Node { return nil }
+            results = append(results, Result{key, values, node, parent, replaceFunc, g})
 
             return nil
         case *ast.ObjectItem:
-            results = append(results, Result{key, node.Val, node, parent, replaceFunc})
+            g := func() ast.Node { return node.Val }
+            results = append(results, Result{key, node.Val, node, parent, replaceFunc, g})
         default:
             return fmt.Errorf("unexpected case")
         }

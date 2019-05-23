@@ -39,7 +39,7 @@ var GetCmd = &cobra.Command{
 		} else {
 			writer = os.Stdout
 		}
-		err = PrintHCL(writer, JSON, Separate, results...)
+		err = Print(writer, JSON, Separate, results...)
 		if err != nil {
 			return err
 		}
@@ -76,7 +76,7 @@ var GetRawCmd = &cobra.Command{
 		} else {
 			writer = os.Stdout
 		}
-		err = PrintHCL(writer, HCL, Separate, results...)
+		err = Print(writer, HCL, Separate, results...)
 		if err != nil {
 			return err
 		}

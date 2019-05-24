@@ -3,6 +3,9 @@ package config
 // UseRawOutput indicates output should be raw format, not JSON
 var UseRawOutput bool
 
+// OutputFormat one of [hcl, json, raw]
+var OutputFormat string
+
 // InputFile is the name of the file to read from, or null if stdin is used.
 var InputFile string
 

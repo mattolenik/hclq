@@ -17,9 +17,7 @@ type Result struct {
 	Key    string
 	Value  interface{}
 	Node   ast.Node
-	Parent ast.Node
 	Setter func(value ast.Node)
-	Getter func() ast.Node
 }
 
 // HclDocument represents an HCL document in memory.
@@ -81,11 +79,10 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 	if err != nil {
 		return nil, err
 	}
-	err = walk(doc.FileNode.Node, qry, []string{}, 0, func(astNode ast.Node, key string, crumb query.Crumb, parent ast.Node, replaceFunc func(newNode ast.Node)) error {
+	err = walk(doc.FileNode.Node, qry, []string{}, 0, func(astNode ast.Node, key string, crumb query.Crumb, parent ast.Node, setter func(newNode ast.Node)) error {
 		switch node := astNode.(type) {
 		case *ast.LiteralType:
-			g := func() ast.Node { return node }
-			results = append(results, Result{key, node.Token.Value(), node, parent, replaceFunc, g})
+			results = append(results, Result{key, node.Token.Value(), node, setter})
 
 		case *ast.ListType:
 			listNode, ok := crumb.(query.IndexedCrumb)
@@ -108,8 +105,7 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 				if !ok {
 					return err
 				}
-				g := func() ast.Node { return val }
-				results = append(results, Result{key, val.Token.Value(), node, parent, replaceFunc, g})
+				results = append(results, Result{key, val.Token.Value(), node, setter})
 				return nil
 			}
 			// TODO: slurp equivalent? merge or non-merge list output
@@ -120,13 +116,11 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 					values = append(values, literal.Token.Value())
 				}
 			}
-			g := func() ast.Node { return nil }
-			results = append(results, Result{key, values, node, parent, replaceFunc, g})
+			results = append(results, Result{key, values, node, setter})
 
 			return nil
 		case *ast.ObjectItem:
-			g := func() ast.Node { return node.Val }
-			results = append(results, Result{key, node.Val, node, parent, replaceFunc, g})
+			results = append(results, Result{key, node.Val, node, setter})
 		default:
 			return fmt.Errorf("unexpected case")
 		}
@@ -135,7 +129,7 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 	return
 }
 
-type WalkFunc func(node ast.Node, key string, crumb query.Crumb, parent ast.Node, replaceFunc func(newNode ast.Node)) error
+type WalkFunc func(node ast.Node, key string, crumb query.Crumb, parent ast.Node, setter func(newNode ast.Node)) error
 
 func walk(
 	astNode ast.Node,
@@ -144,7 +138,7 @@ func walk(
 	crumbIndex int,
 	action WalkFunc,
 	parent ast.Node,
-	replaceFunc func(newNode ast.Node)) error {
+	setter func(newNode ast.Node)) error {
 
 	switch node := astNode.(type) {
 	case *ast.ObjectList:

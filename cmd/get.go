@@ -7,6 +7,7 @@ import (
 
 	"github.com/mattolenik/hclq/config"
 	"github.com/mattolenik/hclq/hclq"
+	"github.com/mattolenik/hclq/output"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +17,10 @@ var GetCmd = &cobra.Command{
 	Short: "retrieve values matching <query>",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		format, err := output.PrintStyleFromString(config.OutputFormat)
+		if err != nil {
+			return err
+		}
 		input, err := getInputReader()
 		if err != nil {
 			return err
@@ -39,44 +44,7 @@ var GetCmd = &cobra.Command{
 		} else {
 			writer = os.Stdout
 		}
-		err = Print(writer, JSON, Separate, results...)
-		if err != nil {
-			return err
-		}
-		return nil
-	},
-}
-
-// GetRawCmd command
-var GetRawCmd = &cobra.Command{
-	Use:   "getraw <query>",
-	Short: "retrieve values matching <query>",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		input, err := getInputReader()
-		if err != nil {
-			return err
-		}
-		doc, err := hclq.FromReader(input)
-		if err != nil {
-			return err
-		}
-		results, err := doc.GetRaw(args[0])
-		if err != nil {
-			return err
-		}
-		var writer io.Writer
-		if config.OutputFile != "" {
-			file, err := os.Create(config.OutputFile)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			writer = file
-		} else {
-			writer = os.Stdout
-		}
-		err = Print(writer, HCL, Separate, results...)
+		err = output.Print(writer, format, results...)
 		if err != nil {
 			return err
 		}
@@ -122,7 +90,7 @@ var GetKeysCmd = &cobra.Command{
 
 func init() {
 	GetCmd.PersistentFlags().BoolVarP(&config.UseRawOutput, "raw", "r", false, "output raw format instead of JSON")
+	GetCmd.PersistentFlags().StringVarP(&config.OutputFormat, "format", "f", "hcl", "output format, one of: hcl, json, raw")
 	GetCmd.AddCommand(GetKeysCmd)
 	RootCmd.AddCommand(GetCmd)
-	RootCmd.AddCommand(GetRawCmd)
 }

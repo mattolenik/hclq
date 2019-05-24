@@ -47,7 +47,7 @@ func (doc *HclDocument) Set2(queryString string, newValue string) error {
 
 	for _, pair := range resultPairs {
 		newValue = fmt.Sprintf(`hclqrootunique { value = %s }`, newValue)
-		node, err :=  FromReader(strings.NewReader(newValue))
+		node, err := FromReader(strings.NewReader(newValue))
 		if err != nil {
 			return err
 		}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-    "github.com/hashicorp/hcl/hcl/ast"
+	"github.com/hashicorp/hcl/hcl/ast"
 )
 
 func (doc *HclDocument) GetRaw(q string) ([]ast.Node, error) {

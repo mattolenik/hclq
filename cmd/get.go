@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"io"
+	"os"
 
 	"github.com/mattolenik/hclq/config"
 	"github.com/mattolenik/hclq/hclq"
@@ -83,6 +83,7 @@ var GetRawCmd = &cobra.Command{
 		return nil
 	},
 }
+
 // GetKeysCmd is like get but returns the key name or names instead of value.
 var GetKeysCmd = &cobra.Command{
 	Use:   "keys <query>",

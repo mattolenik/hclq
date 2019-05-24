@@ -105,7 +105,7 @@ func (doc *HclDocument) Query(queryString string) (results []Result, err error) 
 				if !ok {
 					return err
 				}
-				results = append(results, Result{key, val.Token.Value(), node, setter})
+				results = append(results, Result{key, val.Token.Value(), node.List[listIndex], setter})
 				return nil
 			}
 			// TODO: slurp equivalent? merge or non-merge list output

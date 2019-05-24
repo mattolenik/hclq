@@ -90,7 +90,7 @@ var GetKeysCmd = &cobra.Command{
 
 func init() {
 	GetCmd.PersistentFlags().BoolVarP(&config.UseRawOutput, "raw", "r", false, "output raw format instead of JSON")
-	GetCmd.PersistentFlags().StringVarP(&config.OutputFormat, "format", "f", "hcl", "output format, one of: hcl, json, raw")
+	GetCmd.PersistentFlags().StringVarP(&config.OutputFormat, "format", "f", "json", "output format, one of: hcl, json, raw")
 	GetCmd.AddCommand(GetKeysCmd)
 	RootCmd.AddCommand(GetCmd)
 }

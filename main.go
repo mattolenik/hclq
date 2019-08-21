@@ -1,7 +1,11 @@
 package main
 
-import "github.com/mattolenik/hclq/cmd"
+import (
+	"fmt"
+)
+
+var version string
 
 func main() {
-	cmd.Execute()
+	fmt.Println(version)
 }

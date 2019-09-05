@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/mattolenik/hclq/hclq"
 )
 
 var version string
 
 func main() {
-	fmt.Println(version)
+	r := hclq.Results{}
+	fmt.Println(r)
 }

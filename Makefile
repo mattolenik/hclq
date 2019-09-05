@@ -1,11 +1,12 @@
 DIST          := $(shell mkdir -p dist && printf dist)
 SOURCE         = $(shell find . -name '*.go')
+MODULE         = $(shell head -n1 < go.mod | awk '{print $$2}')
 # Version and linker flags
 # This will return either the current tag, branch, or commit hash of this repo.
 VERSION        = $(shell echo $$(ver=$$(git tag -l --points-at HEAD) && [ -z $$ver ] && ver=$$(git describe --always --dirty --all | sed 's/heads\///'); printf '0.0.0-%s' "$$ver"))
 LDFLAGS        = -s -w -X main.version=${VERSION}
 IS_PUBLISH     = $(APPVEYOR_REPO_TAG)
-BUILD_CMD      = go build -mod=vendor -ldflags="${LDFLAGS}"
+BUILD_CMD      = go build -mod=vendor -ldflags="${LDFLAGS}" -o "$@" $(MODULE)
 # Build tools
 GHR             := github.com/tcnksm/ghr
 GO_JUNIT_REPORT := github.com/jstemmer/go-junit-report
@@ -16,7 +17,7 @@ default: build test README.md
 build: $(DIST)/hclq
 
 $(DIST)/hclq: $(SOURCE)
-	$(BUILD_CMD) -i -gcflags='-N -l' -o dist/hclq
+	$(BUILD_CMD)
 
 clean:
 	rm -rf $(DIST) && mkdir dist

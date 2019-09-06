@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/agext/levenshtein v1.2.2 // indirect
 	github.com/apparentlymart/go-dump v0.0.0-20190214190832-042adf3cf4a0 // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.0.0 // indirect

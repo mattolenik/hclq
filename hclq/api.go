@@ -18,8 +18,8 @@ type Results struct {
 }
 
 // Query returns results that match a given query string
-func (f *Doc) Query(query string) (cty.Value, hcl.Diagnostics) {
-	return hcldec.Decode(f.File.Body, &hcldec.AttrSpec{Name: query, Type: cty.String}, nil)
+func (f *Doc) Query(spec hcldec.Spec) (cty.Value, hcl.Diagnostics) {
+	return hcldec.Decode(f.File.Body, spec, nil)
 }
 
 // FromFile creates a queryable HCL document from a filename.

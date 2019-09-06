@@ -14,6 +14,7 @@ github.com/google/go-querystring/query
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6
 github.com/hashicorp/hcl2/hcl
+github.com/hashicorp/hcl2/hcldec
 github.com/hashicorp/hcl2/hclparse
 github.com/hashicorp/hcl2/hcl/hclsyntax
 github.com/hashicorp/hcl2/hcl/json
@@ -45,7 +46,7 @@ github.com/zclconf/go-cty/cty/set
 github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
-# golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
+# golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/context/ctxhttp
@@ -55,12 +56,12 @@ golang.org/x/oauth2
 golang.org/x/oauth2/internal
 # golang.org/x/sync v0.0.0-20190423024810-112230192c58
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a
+# golang.org/x/sys v0.0.0-20190904154756-749cb33beabd
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# google.golang.org/appengine v1.6.1
+# google.golang.org/appengine v1.6.2
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/urlfetch

@@ -2,8 +2,8 @@ package hclq
 
 import (
 	"github.com/hashicorp/hcl2/hcl"
+	"github.com/hashicorp/hcl2/hcldec"
 	"github.com/hashicorp/hcl2/hclparse"
-	"github.com/hashicorp/hcl2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -18,9 +18,8 @@ type Results struct {
 }
 
 // Query returns results that match a given query string
-func (f *Doc) Query(query string) (*Results, error) {
-	traverse := hcl.TraverseAttr{Name: "foo", SrcRange: nil}
-	return nil, nil
+func (f *Doc) Query(query string) (cty.Value, hcl.Diagnostics) {
+	return hcldec.Decode(f.File.Body, &hcldec.AttrSpec{Name: query, Type: cty.String}, nil)
 }
 
 // FromFile creates a queryable HCL document from a filename.

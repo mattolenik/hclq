@@ -9,6 +9,13 @@ import (
 var version string
 
 func main() {
-	r := hclq.Results{}
-	fmt.Println(r)
+	doc, errs := hclq.FromString(`foo="123"`)
+	if errs != nil {
+		panic(errs)
+	}
+	res, err := doc.Query("foo")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(res)
 }

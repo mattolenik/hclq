@@ -1,35 +1,48 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/alecthomas/participle"
+	"github.com/alecthomas/participle/lexer"
+	"github.com/alecthomas/participle/lexer/ebnf"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/hashicorp/hcl2/hcldec"
-	"github.com/mattolenik/hclq/hclq"
-	"github.com/zclconf/go-cty/cty"
 )
 
-var version string
-
-var hcl = `
-some "block" "here" {
-    foo="abc"
-}
-`
-
 func main() {
-	doc, errs := hclq.FromString(hcl)
-	if errs != nil {
-		panic(errs)
-	}
-	spec := &hcldec.BlockObjectSpec{
-		TypeName:   "some",
-		LabelNames: []string{"block", "here"},
-		Nested: &hcldec.ObjectSpec{
-			"foo": &hcldec.AttrSpec{Name: "foo", Type: cty.String},
-		},
-	}
-	res, err := doc.Query(spec)
+	lxr := lexer.Must(ebnf.New(`
+		Dot = "." .
+		Regex = "/" { "\\/" | anyregex } "/" .
+		Ident = { "\\." | anyident } | { anyident } .
+		alpha = "a"…"z" | "A"…"Z" .
+		any = "\u0000"…"\uffff" .
+		anyident = "\u0000"…"\uffff"-"." .
+		anyregex = "\u0000"…"\uffff"-"/" .
+	`))
+
+	parser, err := participle.Build(
+		&Query{},
+		participle.Lexer(lxr),
+	)
 	if err != nil {
 		panic(err)
 	}
-	spew.Dump(res)
+	q := `.abc.def./abc\/sadf/.xy\.z`
+	qAST := &Query{}
+	err = parser.ParseString(q, qAST)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	spew.Dump(qAST)
+}
+
+type Query struct {
+	Crumbs []*Crumb `( Dot @@ )+`
+}
+
+type Crumb struct {
+	Ident string `  @Ident`
+	Regex string `| @Regex`
 }

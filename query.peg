@@ -1,0 +1,15 @@
+{
+    package main
+}
+
+QUERY <- val:Value EOF {
+    return val, nil
+}
+
+Value <- val:Char+ {
+    return string(c.text), nil
+}
+
+Char <- [a-z]
+
+EOF ← !.

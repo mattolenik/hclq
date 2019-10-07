@@ -2,10 +2,10 @@
 github.com/Songmu/retry
 # github.com/agext/levenshtein v1.2.2
 github.com/agext/levenshtein
+# github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1
+github.com/alecthomas/repr
 # github.com/apparentlymart/go-textseg v1.0.0
 github.com/apparentlymart/go-textseg/textseg
-# github.com/davecgh/go-spew v1.1.1
-github.com/davecgh/go-spew/spew
 # github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto
 # github.com/google/go-github v17.0.0+incompatible
@@ -14,27 +14,26 @@ github.com/google/go-github/github
 github.com/google/go-querystring/query
 # github.com/hashicorp/go-version v1.2.0
 github.com/hashicorp/go-version
-# github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6
-github.com/hashicorp/hcl2/hcldec
+# github.com/hashicorp/hcl2 v0.0.0-20191002203319-fb75b3253c80
 github.com/hashicorp/hcl2/hcl
-github.com/hashicorp/hcl2/hclparse
 github.com/hashicorp/hcl2/hcl/hclsyntax
-github.com/hashicorp/hcl2/hcl/json
-# github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024
+# github.com/jstemmer/go-junit-report v0.9.1
 github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
 github.com/jstemmer/go-junit-report/parser
-# github.com/mattn/go-colorable v0.1.1
+# github.com/mattn/go-colorable v0.1.4
 github.com/mattn/go-colorable
-# github.com/mattn/go-isatty v0.0.5
+# github.com/mattn/go-isatty v0.0.9
 github.com/mattn/go-isatty
 # github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
 github.com/mitchellh/colorstring
 # github.com/mitchellh/go-wordwrap v1.0.0
 github.com/mitchellh/go-wordwrap
+# github.com/mna/pigeon v1.0.1-0.20190909211542-7ee56e19b15c
+github.com/mna/pigeon/ast
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
-# github.com/tcnksm/ghr v0.12.2
+# github.com/tcnksm/ghr v0.13.0
 github.com/tcnksm/ghr
 # github.com/tcnksm/go-gitconfig v0.1.2
 github.com/tcnksm/go-gitconfig
@@ -44,26 +43,38 @@ github.com/tcnksm/go-latest
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
 github.com/zclconf/go-cty/cty/function
-github.com/zclconf/go-cty/cty/set
 github.com/zclconf/go-cty/cty/function/stdlib
+github.com/zclconf/go-cty/cty/set
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
-# golang.org/x/net v0.0.0-20190827160401-ba9fcec4b297
+# golang.org/x/net v0.0.0-20191003171128-d98b1b443823
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/context
-# golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
+# golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sync v0.0.0-20190423024810-112230192c58
+# golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 golang.org/x/sync/errgroup
-# golang.org/x/sys v0.0.0-20190904154756-749cb33beabd
+# golang.org/x/sys v0.0.0-20191007154456-ef33b2fb2c41
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2
 golang.org/x/text/unicode/norm
 golang.org/x/text/transform
-# google.golang.org/appengine v1.6.2
+# golang.org/x/tools v0.0.0-20191007172023-944452d4f073
+golang.org/x/tools/cmd/goimports
+golang.org/x/tools/internal/imports
+golang.org/x/tools/go/ast/astutil
+golang.org/x/tools/go/packages
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/module
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/internal/semver
+golang.org/x/tools/internal/fastwalk
+golang.org/x/tools/go/internal/gcimporter
+# google.golang.org/appengine v1.6.4
 google.golang.org/appengine/urlfetch
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/urlfetch

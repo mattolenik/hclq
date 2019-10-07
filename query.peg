@@ -1,15 +1,35 @@
 {
-    package main
+package main
+
+import (
+	"github.com/alecthomas/repr"
+)
+
+func slice(v interface{}) []interface{} {
+    if v == nil {
+        return nil
+    }
+    return v.([]interface{})
 }
 
-QUERY <- val:Value EOF {
-    return val, nil
+type Crumb struct {
+    Value string
+}
 }
 
-Value <- val:Char+ {
+QUERY <- vals:(CrumbSeparator Ident)+ EOF {
+    repr.Println(vals)
+    return &Crumb{Value: slice(slice(vals)[0])[1].(string)}, nil
+}
+
+Ident <- val:Char+ {
     return string(c.text), nil
 }
 
 Char <- [a-z]
+
+CrumbSeparator <- val:'.' {
+    return string(c.text), nil
+}
 
 EOF ← !.

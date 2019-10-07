@@ -16,29 +16,54 @@ import (
 	"sync"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/alecthomas/repr"
 )
+
+func slice(v interface{}) []interface{} {
+	if v == nil {
+		return nil
+	}
+	return v.([]interface{})
+}
+
+type Crumb struct {
+	Value string
+}
 
 var g = &grammar{
 	rules: []*rule{
 		{
 			name: "QUERY",
-			pos:  position{line: 5, col: 1, offset: 26},
+			pos:  position{line: 20, col: 1, offset: 236},
 			expr: &actionExpr{
-				pos: position{line: 5, col: 10, offset: 35},
+				pos: position{line: 20, col: 10, offset: 245},
 				run: (*parser).callonQUERY1,
 				expr: &seqExpr{
-					pos: position{line: 5, col: 10, offset: 35},
+					pos: position{line: 20, col: 10, offset: 245},
 					exprs: []interface{}{
 						&labeledExpr{
-							pos:   position{line: 5, col: 10, offset: 35},
-							label: "val",
-							expr: &ruleRefExpr{
-								pos:  position{line: 5, col: 14, offset: 39},
-								name: "Value",
+							pos:   position{line: 20, col: 10, offset: 245},
+							label: "vals",
+							expr: &oneOrMoreExpr{
+								pos: position{line: 20, col: 15, offset: 250},
+								expr: &seqExpr{
+									pos: position{line: 20, col: 16, offset: 251},
+									exprs: []interface{}{
+										&ruleRefExpr{
+											pos:  position{line: 20, col: 16, offset: 251},
+											name: "CrumbSeparator",
+										},
+										&ruleRefExpr{
+											pos:  position{line: 20, col: 31, offset: 266},
+											name: "Ident",
+										},
+									},
+								},
 							},
 						},
 						&ruleRefExpr{
-							pos:  position{line: 5, col: 20, offset: 45},
+							pos:  position{line: 20, col: 39, offset: 274},
 							name: "EOF",
 						},
 					},
@@ -46,18 +71,18 @@ var g = &grammar{
 			},
 		},
 		{
-			name: "Value",
-			pos:  position{line: 9, col: 1, offset: 78},
+			name: "Ident",
+			pos:  position{line: 25, col: 1, offset: 376},
 			expr: &actionExpr{
-				pos: position{line: 9, col: 10, offset: 87},
-				run: (*parser).callonValue1,
+				pos: position{line: 25, col: 10, offset: 385},
+				run: (*parser).callonIdent1,
 				expr: &labeledExpr{
-					pos:   position{line: 9, col: 10, offset: 87},
+					pos:   position{line: 25, col: 10, offset: 385},
 					label: "val",
 					expr: &oneOrMoreExpr{
-						pos: position{line: 9, col: 14, offset: 91},
+						pos: position{line: 25, col: 14, offset: 389},
 						expr: &ruleRefExpr{
-							pos:  position{line: 9, col: 14, offset: 91},
+							pos:  position{line: 25, col: 14, offset: 389},
 							name: "Char",
 						},
 					},
@@ -66,9 +91,9 @@ var g = &grammar{
 		},
 		{
 			name: "Char",
-			pos:  position{line: 13, col: 1, offset: 137},
+			pos:  position{line: 29, col: 1, offset: 435},
 			expr: &charClassMatcher{
-				pos:        position{line: 13, col: 9, offset: 145},
+				pos:        position{line: 29, col: 9, offset: 443},
 				val:        "[a-z]",
 				ranges:     []rune{'a', 'z'},
 				ignoreCase: false,
@@ -76,38 +101,67 @@ var g = &grammar{
 			},
 		},
 		{
+			name: "CrumbSeparator",
+			pos:  position{line: 31, col: 1, offset: 452},
+			expr: &actionExpr{
+				pos: position{line: 31, col: 19, offset: 470},
+				run: (*parser).callonCrumbSeparator1,
+				expr: &labeledExpr{
+					pos:   position{line: 31, col: 19, offset: 470},
+					label: "val",
+					expr: &litMatcher{
+						pos:        position{line: 31, col: 23, offset: 474},
+						val:        ".",
+						ignoreCase: false,
+					},
+				},
+			},
+		},
+		{
 			name: "EOF",
-			pos:  position{line: 15, col: 1, offset: 154},
+			pos:  position{line: 35, col: 1, offset: 518},
 			expr: &notExpr{
-				pos: position{line: 15, col: 7, offset: 162},
+				pos: position{line: 35, col: 7, offset: 526},
 				expr: &anyMatcher{
-					line: 15, col: 8, offset: 163,
+					line: 35, col: 8, offset: 527,
 				},
 			},
 		},
 	},
 }
 
-func (c *current) onQUERY1(val interface{}) (interface{}, error) {
+func (c *current) onQUERY1(vals interface{}) (interface{}, error) {
 
-	return val, nil
+	repr.Println(vals)
+	return &Crumb{Value: slice(slice(vals)[0])[1].(string)}, nil
 }
 
 func (p *parser) callonQUERY1() (interface{}, error) {
 	stack := p.vstack[len(p.vstack)-1]
 	_ = stack
-	return p.cur.onQUERY1(stack["val"])
+	return p.cur.onQUERY1(stack["vals"])
 }
 
-func (c *current) onValue1(val interface{}) (interface{}, error) {
+func (c *current) onIdent1(val interface{}) (interface{}, error) {
 
 	return string(c.text), nil
 }
 
-func (p *parser) callonValue1() (interface{}, error) {
+func (p *parser) callonIdent1() (interface{}, error) {
 	stack := p.vstack[len(p.vstack)-1]
 	_ = stack
-	return p.cur.onValue1(stack["val"])
+	return p.cur.onIdent1(stack["val"])
+}
+
+func (c *current) onCrumbSeparator1(val interface{}) (interface{}, error) {
+
+	return string(c.text), nil
+}
+
+func (p *parser) callonCrumbSeparator1() (interface{}, error) {
+	stack := p.vstack[len(p.vstack)-1]
+	_ = stack
+	return p.cur.onCrumbSeparator1(stack["val"])
 }
 
 var (

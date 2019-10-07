@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	q := "abc"
+	q := ".abc.def.xyz"
 	r, err := Parse("inline", []byte(q))
 	repr.Println(r)
 	repr.Println(err)

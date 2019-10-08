@@ -1,14 +1,15 @@
 {//code
+
 package queryast
 
 import (
 	"github.com/alecthomas/repr"
-    "github.com/mattolenik/hclq/structs"
+	"github.com/mattolenik/hclq/structs"
 )
 
 type Crumb struct {
-    Separator string `index:"0"`
-    Value string `index:"1"`
+	Separator string `index:"0"`
+	Value     string `index:"1"`
 }
 }//code
 

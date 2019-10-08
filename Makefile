@@ -99,5 +99,6 @@ run: peg build
 
 fmt:
 	go fmt ./...
+	tools/peg-fmt.sh
 
 .PHONY: clean install publish test

@@ -60,9 +60,9 @@ func Fill(record interface{}, values []interface{}) error {
 	return nil
 }
 
-// ToSlice casts v to an array of interface{} from just an interface{},
+// AsSlice casts v to an array of interface{} from just an interface{},
 // returning nil if v is nil.
-func ToSlice(v interface{}) []interface{} {
+func AsSlice(v interface{}) []interface{} {
 	if v == nil {
 		return nil
 	}

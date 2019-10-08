@@ -4,7 +4,7 @@ package queryast
 
 import (
 	"github.com/alecthomas/repr"
-	"github.com/mattolenik/hclq/structs"
+	. "github.com/mattolenik/hclq/structs"
 )
 
 type Crumb struct {
@@ -15,11 +15,11 @@ type Crumb struct {
 
 QUERY <- vals:(CrumbSeparator Ident)+ EOF {
     results := []*Crumb{}
-    crumbs := structs.ToSlice(vals)
+    crumbs := AsSlice(vals)
     for _, crumb := range crumbs {
-        crumbVals := structs.ToSlice(crumb)
+        crumbVals := AsSlice(crumb)
         c := &Crumb{}
-        structs.Fill(c, crumbVals)
+        Fill(c, crumbVals)
         results = append(results, c)
     }
     return results, nil

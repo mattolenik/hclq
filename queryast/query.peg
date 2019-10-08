@@ -6,13 +6,6 @@ import (
     "github.com/mattolenik/hclq/structs"
 )
 
-func slice(v interface{}) []interface{} {
-    if v == nil {
-        return nil
-    }
-    return v.([]interface{})
-}
-
 type Crumb struct {
     Separator string `index:"1"`
     Value string `index:"0"`
@@ -21,14 +14,14 @@ type Crumb struct {
 
 QUERY <- vals:(CrumbSeparator Ident)+ EOF {
     results := []*Crumb{}
-    crumbs := slice(vals)
+    crumbs := structs.ToSlice(vals)
     for _, crumb := range crumbs {
-        crumbVals := slice(crumb)
+        crumbVals := structs.ToSlice(crumb)
         c := &Crumb{}
         structs.Fill(c, crumbVals)
         results = append(results, c)
     }
-    return crumbs, nil
+    return results, nil
 }
 
 Ident <- val:Char+ {

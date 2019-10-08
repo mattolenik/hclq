@@ -20,13 +20,6 @@ import (
 	"github.com/mattolenik/hclq/structs"
 )
 
-func slice(v interface{}) []interface{} {
-	if v == nil {
-		return nil
-	}
-	return v.([]interface{})
-}
-
 type Crumb struct {
 	Separator string `index:"1"`
 	Value     string `index:"0"`
@@ -36,27 +29,27 @@ var g = &grammar{
 	rules: []*rule{
 		{
 			name: "QUERY",
-			pos:  position{line: 22, col: 1, offset: 328},
+			pos:  position{line: 15, col: 1, offset: 204},
 			expr: &actionExpr{
-				pos: position{line: 22, col: 10, offset: 337},
+				pos: position{line: 15, col: 10, offset: 213},
 				run: (*parser).callonQUERY1,
 				expr: &seqExpr{
-					pos: position{line: 22, col: 10, offset: 337},
+					pos: position{line: 15, col: 10, offset: 213},
 					exprs: []interface{}{
 						&labeledExpr{
-							pos:   position{line: 22, col: 10, offset: 337},
+							pos:   position{line: 15, col: 10, offset: 213},
 							label: "vals",
 							expr: &oneOrMoreExpr{
-								pos: position{line: 22, col: 15, offset: 342},
+								pos: position{line: 15, col: 15, offset: 218},
 								expr: &seqExpr{
-									pos: position{line: 22, col: 16, offset: 343},
+									pos: position{line: 15, col: 16, offset: 219},
 									exprs: []interface{}{
 										&ruleRefExpr{
-											pos:  position{line: 22, col: 16, offset: 343},
+											pos:  position{line: 15, col: 16, offset: 219},
 											name: "CrumbSeparator",
 										},
 										&ruleRefExpr{
-											pos:  position{line: 22, col: 31, offset: 358},
+											pos:  position{line: 15, col: 31, offset: 234},
 											name: "Ident",
 										},
 									},
@@ -64,7 +57,7 @@ var g = &grammar{
 							},
 						},
 						&ruleRefExpr{
-							pos:  position{line: 22, col: 39, offset: 366},
+							pos:  position{line: 15, col: 39, offset: 242},
 							name: "EOF",
 						},
 					},
@@ -73,17 +66,17 @@ var g = &grammar{
 		},
 		{
 			name: "Ident",
-			pos:  position{line: 34, col: 1, offset: 631},
+			pos:  position{line: 27, col: 1, offset: 528},
 			expr: &actionExpr{
-				pos: position{line: 34, col: 10, offset: 640},
+				pos: position{line: 27, col: 10, offset: 537},
 				run: (*parser).callonIdent1,
 				expr: &labeledExpr{
-					pos:   position{line: 34, col: 10, offset: 640},
+					pos:   position{line: 27, col: 10, offset: 537},
 					label: "val",
 					expr: &oneOrMoreExpr{
-						pos: position{line: 34, col: 14, offset: 644},
+						pos: position{line: 27, col: 14, offset: 541},
 						expr: &ruleRefExpr{
-							pos:  position{line: 34, col: 14, offset: 644},
+							pos:  position{line: 27, col: 14, offset: 541},
 							name: "Char",
 						},
 					},
@@ -92,9 +85,9 @@ var g = &grammar{
 		},
 		{
 			name: "Char",
-			pos:  position{line: 38, col: 1, offset: 690},
+			pos:  position{line: 31, col: 1, offset: 587},
 			expr: &charClassMatcher{
-				pos:        position{line: 38, col: 9, offset: 698},
+				pos:        position{line: 31, col: 9, offset: 595},
 				val:        "[a-z]",
 				ranges:     []rune{'a', 'z'},
 				ignoreCase: false,
@@ -103,15 +96,15 @@ var g = &grammar{
 		},
 		{
 			name: "CrumbSeparator",
-			pos:  position{line: 40, col: 1, offset: 707},
+			pos:  position{line: 33, col: 1, offset: 604},
 			expr: &actionExpr{
-				pos: position{line: 40, col: 19, offset: 725},
+				pos: position{line: 33, col: 19, offset: 622},
 				run: (*parser).callonCrumbSeparator1,
 				expr: &labeledExpr{
-					pos:   position{line: 40, col: 19, offset: 725},
+					pos:   position{line: 33, col: 19, offset: 622},
 					label: "val",
 					expr: &litMatcher{
-						pos:        position{line: 40, col: 23, offset: 729},
+						pos:        position{line: 33, col: 23, offset: 626},
 						val:        ".",
 						ignoreCase: false,
 					},
@@ -120,11 +113,11 @@ var g = &grammar{
 		},
 		{
 			name: "EOF",
-			pos:  position{line: 44, col: 1, offset: 773},
+			pos:  position{line: 37, col: 1, offset: 670},
 			expr: &notExpr{
-				pos: position{line: 44, col: 7, offset: 781},
+				pos: position{line: 37, col: 7, offset: 678},
 				expr: &anyMatcher{
-					line: 44, col: 8, offset: 782,
+					line: 37, col: 8, offset: 679,
 				},
 			},
 		},
@@ -134,14 +127,14 @@ var g = &grammar{
 func (c *current) onQUERY1(vals interface{}) (interface{}, error) {
 
 	results := []*Crumb{}
-	crumbs := slice(vals)
+	crumbs := structs.ToSlice(vals)
 	for _, crumb := range crumbs {
-		crumbVals := slice(crumb)
+		crumbVals := structs.ToSlice(crumb)
 		c := &Crumb{}
 		structs.Fill(c, crumbVals)
 		results = append(results, c)
 	}
-	return crumbs, nil
+	return results, nil
 }
 
 func (p *parser) callonQUERY1() (interface{}, error) {

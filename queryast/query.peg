@@ -1,8 +1,9 @@
 {
-package main
+package queryast
 
 import (
 	"github.com/alecthomas/repr"
+    "github.com/mattolenik/hclq/structs"
 )
 
 func slice(v interface{}) []interface{} {
@@ -13,13 +14,21 @@ func slice(v interface{}) []interface{} {
 }
 
 type Crumb struct {
-    Value string
+    Separator string `index:"1"`
+    Value string `index:"0"`
 }
 }
 
 QUERY <- vals:(CrumbSeparator Ident)+ EOF {
-    repr.Println(vals)
-    return &Crumb{Value: slice(slice(vals)[0])[1].(string)}, nil
+    results := []*Crumb{}
+    crumbs := slice(vals)
+    for _, crumb := range crumbs {
+        crumbVals := slice(crumb)
+        c := &Crumb{}
+        structs.Fill(c, crumbVals)
+        results = append(results, c)
+    }
+    return crumbs, nil
 }
 
 Ident <- val:Char+ {

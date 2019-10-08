@@ -1,12 +1,25 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/alecthomas/repr"
+	"github.com/mattolenik/hclq/queryast"
 )
 
 func main() {
+	err := mainError()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func mainError() error {
 	q := ".abc.def.xyz"
-	r, err := Parse("inline", []byte(q))
+	r, err := queryast.Parse("inline", []byte(q))
 	repr.Println(r)
 	repr.Println(err)
+	return nil
 }

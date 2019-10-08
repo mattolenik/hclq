@@ -17,7 +17,6 @@ PIGEON_SRC       = $(shell find vendor/$(PIGEON_MODULE) -type f -name '*.go')
 GOIMPORTS       := $(TOOLS)/goimports
 GOIMPORTS_MODULE := golang.org/x/tools/cmd/goimports
 GOIMPORTS_SRC   = $(shell find vendor/$(GOIMPORTS_MODULE) -type f -name '*.go')
-export PATH     := $(PWD)/tools/bin:$(PATH)
 
 default: build test README.md
 
@@ -26,8 +25,8 @@ build: $(DIST)/hclq
 $(DIST)/hclq: $(SOURCE)
 	$(BUILD_CMD)
 
-queryast/peg.go: queryast/query.peg peg-prereqs
-	pigeon $@ | goimports > @<
+queryast/query_peg.go: queryast/query.peg | peg-prereqs
+	$(PIGEON) $< | $(GOIMPORTS) > $@
 
 
 clean:

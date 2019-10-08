@@ -1,4 +1,4 @@
-{
+{//code
 package queryast
 
 import (
@@ -7,10 +7,10 @@ import (
 )
 
 type Crumb struct {
-    Separator string `index:"1"`
-    Value string `index:"0"`
+    Separator string `index:"0"`
+    Value string `index:"1"`
 }
-}
+}//code
 
 QUERY <- vals:(CrumbSeparator Ident)+ EOF {
     results := []*Crumb{}

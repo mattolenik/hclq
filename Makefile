@@ -94,6 +94,9 @@ test: $(GO_JUNIT_REPORT) build
 	@mkdir -p test
 	HCLQ_BIN=dist/hclq go test -mod=vendor -v "./..." | tee /dev/tty | go-junit-report > test/TEST.xml
 
+run: peg build
+	@dist/hclq $(ARGS)
+
 fmt:
 	go fmt ./...
 

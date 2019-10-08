@@ -18,16 +18,17 @@ GOIMPORTS       := $(TOOLS)/goimports
 GOIMPORTS_MODULE := golang.org/x/tools/cmd/goimports
 GOIMPORTS_SRC   = $(shell find vendor/$(GOIMPORTS_MODULE) -type f -name '*.go')
 
-default: build test README.md
+default: test build README.md
 
-build: $(DIST)/hclq
+build: peg $(DIST)/hclq
 
 $(DIST)/hclq: $(SOURCE)
 	$(BUILD_CMD)
 
-queryast/query_peg.go: queryast/query.peg | peg-prereqs
-	$(PIGEON) $< | $(GOIMPORTS) > $@
+peg: queryast/query_peg.go
 
+queryast/%_peg.go: queryast/%.peg | peg-prereqs
+	$(PIGEON) $< | $(GOIMPORTS) > $@
 
 clean:
 	rm -rf $(DIST) $(TOOLS)

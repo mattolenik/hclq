@@ -29,10 +29,13 @@ Ident <- val:Char+ {
     return string(c.text), nil
 }
 
-Char <- [a-z]
+Char <- [\x30-\x39\x41-\x7A\xA1-\u10FFFF]
 
 CrumbSeparator <- val:'.' {
     return string(c.text), nil
 }
 
+
 EOF ← !.
+
+// x30-x39 x41-x7A xA1-xFFFF

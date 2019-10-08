@@ -90,23 +90,24 @@ var g = &grammar{
 			pos:  position{line: 32, col: 1, offset: 543},
 			expr: &charClassMatcher{
 				pos:        position{line: 32, col: 9, offset: 551},
-				val:        "[a-z]",
-				ranges:     []rune{'a', 'z'},
+				val:        "[\\x30-\\x39\\x41-\\x7A\\xA1-\\u10FFFF]",
+				chars:      []rune{'F', 'F'},
+				ranges:     []rune{'0', '9', 'A', 'z', '¡', 'ჿ'},
 				ignoreCase: false,
 				inverted:   false,
 			},
 		},
 		{
 			name: "CrumbSeparator",
-			pos:  position{line: 34, col: 1, offset: 558},
+			pos:  position{line: 34, col: 1, offset: 586},
 			expr: &actionExpr{
-				pos: position{line: 34, col: 19, offset: 576},
+				pos: position{line: 34, col: 19, offset: 604},
 				run: (*parser).callonCrumbSeparator1,
 				expr: &labeledExpr{
-					pos:   position{line: 34, col: 19, offset: 576},
+					pos:   position{line: 34, col: 19, offset: 604},
 					label: "val",
 					expr: &litMatcher{
-						pos:        position{line: 34, col: 23, offset: 580},
+						pos:        position{line: 34, col: 23, offset: 608},
 						val:        ".",
 						ignoreCase: false,
 					},
@@ -115,11 +116,11 @@ var g = &grammar{
 		},
 		{
 			name: "EOF",
-			pos:  position{line: 38, col: 1, offset: 620},
+			pos:  position{line: 39, col: 1, offset: 649},
 			expr: &notExpr{
-				pos: position{line: 38, col: 7, offset: 628},
+				pos: position{line: 39, col: 7, offset: 657},
 				expr: &anyMatcher{
-					line: 38, col: 8, offset: 629,
+					line: 39, col: 8, offset: 658,
 				},
 			},
 		},

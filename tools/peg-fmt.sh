@@ -6,6 +6,8 @@ fail() { echo "$*" >&2; exit 1; }
 
 NL=$'\n'
 EXTENSION=peg
+START_BLOCK='{//code'
+END_BLOCK='}//code'
 
 process() {
   local before_code=""
@@ -14,16 +16,16 @@ process() {
   local code_start=false
   local code_end=false
   while IFS='' read -r line; do
-    if [[ $line == "{//code"* ]]; then
+    if [[ $line == "$START_BLOCK"* ]]; then
       if [[ $code_start == true ]]; then
-        fail "{//code block declared twice"
+        fail "$START_BLOCK block declared twice"
       fi
       code_start=true
       before_code+="$line$NL"
       continue
-    elif [[ $line == "}//code"* ]]; then
+    elif [[ $line == "$END_BLOCK"* ]]; then
       if [[ $code_start != true ]]; then
-        fail "Found ending }//code block before beginning {//code block"
+        fail "Found ending $END_BLOCK block before beginning $START_BLOCK block"
       fi
       code_end=true
       code_start=false
@@ -44,6 +46,9 @@ process() {
 }
 
 main() {
+  if ! command -v gofmt &> /dev/null; then
+    fail "gofmt not found, Go must be installed for $(basename $0) to work"
+  fi
   readarray -t files < <(find . -type d \( -path ./vendor -o -path ./.git \) -prune -o -name "*.$EXTENSION" -print | cut -c3-)
   for file in "${files[@]}"; do
     contents=$(<"$file")

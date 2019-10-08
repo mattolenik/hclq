@@ -6,8 +6,6 @@ import (
 	"strconv"
 )
 
-var X = 1
-
 // Fill takes a pointer to a struct and populates fields tagged with 'index:n' where n is an integer >= 0.
 // That index corresponds to the index of the values slice that is passed into this function. A field with
 // the tag `index:"1"` will be populated with values[1]. This allows fields to be rearranged in code without

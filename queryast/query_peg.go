@@ -22,44 +22,84 @@ import (
 	. "github.com/mattolenik/hclq/structs"
 )
 
+type Query struct {
+	Parts []*Expr
+}
+
+type Expr struct {
+	Trail *Trail
+}
+
+type Trail struct {
+	Crumbs []*Crumb
+}
+
 type Crumb struct {
 	Separator string `index:"0"`
 	Value     string `index:"1"`
+}
+
+type Whitespace struct{}
+
+func StripWS(values []interface{}) []interface{} {
+	result := []interface{}{}
+	for _, v := range values {
+		switch v.(type) {
+		case Whitespace:
+		case *Whitespace:
+			continue
+		default:
+			result = append(result, v)
+		}
+	}
+	return result
 }
 
 var g = &grammar{
 	rules: []*rule{
 		{
 			name: "QUERY",
-			pos:  position{line: 16, col: 1, offset: 200},
+			pos:  position{line: 51, col: 1, offset: 684},
 			expr: &actionExpr{
-				pos: position{line: 16, col: 10, offset: 209},
+				pos: position{line: 51, col: 10, offset: 693},
 				run: (*parser).callonQUERY1,
 				expr: &seqExpr{
-					pos: position{line: 16, col: 10, offset: 209},
+					pos: position{line: 51, col: 10, offset: 693},
 					exprs: []interface{}{
 						&labeledExpr{
-							pos:   position{line: 16, col: 10, offset: 209},
+							pos:   position{line: 51, col: 10, offset: 693},
 							label: "vals",
 							expr: &oneOrMoreExpr{
-								pos: position{line: 16, col: 15, offset: 214},
+								pos: position{line: 51, col: 15, offset: 698},
 								expr: &seqExpr{
-									pos: position{line: 16, col: 16, offset: 215},
+									pos: position{line: 51, col: 16, offset: 699},
 									exprs: []interface{}{
 										&ruleRefExpr{
-											pos:  position{line: 16, col: 16, offset: 215},
-											name: "CrumbSeparator",
+											pos:  position{line: 51, col: 16, offset: 699},
+											name: "_",
 										},
 										&ruleRefExpr{
-											pos:  position{line: 16, col: 31, offset: 230},
-											name: "Ident",
+											pos:  position{line: 51, col: 18, offset: 701},
+											name: "FilterSeparator",
+										},
+										&ruleRefExpr{
+											pos:  position{line: 51, col: 34, offset: 717},
+											name: "_",
+										},
+										&ruleRefExpr{
+											pos:  position{line: 51, col: 36, offset: 719},
+											name: "Expr",
+										},
+										&ruleRefExpr{
+											pos:  position{line: 51, col: 41, offset: 724},
+											name: "_",
 										},
 									},
 								},
 							},
 						},
 						&ruleRefExpr{
-							pos:  position{line: 16, col: 39, offset: 238},
+							pos:  position{line: 51, col: 45, offset: 728},
 							name: "EOF",
 						},
 					},
@@ -67,18 +107,62 @@ var g = &grammar{
 			},
 		},
 		{
-			name: "Ident",
-			pos:  position{line: 28, col: 1, offset: 488},
+			name: "Expr",
+			pos:  position{line: 60, col: 1, offset: 934},
 			expr: &actionExpr{
-				pos: position{line: 28, col: 10, offset: 497},
+				pos: position{line: 60, col: 9, offset: 942},
+				run: (*parser).callonExpr1,
+				expr: &labeledExpr{
+					pos:   position{line: 60, col: 9, offset: 942},
+					label: "val",
+					expr: &ruleRefExpr{
+						pos:  position{line: 60, col: 14, offset: 947},
+						name: "Trail",
+					},
+				},
+			},
+		},
+		{
+			name: "Trail",
+			pos:  position{line: 64, col: 1, offset: 1002},
+			expr: &actionExpr{
+				pos: position{line: 64, col: 10, offset: 1011},
+				run: (*parser).callonTrail1,
+				expr: &labeledExpr{
+					pos:   position{line: 64, col: 10, offset: 1011},
+					label: "vals",
+					expr: &oneOrMoreExpr{
+						pos: position{line: 64, col: 15, offset: 1016},
+						expr: &seqExpr{
+							pos: position{line: 64, col: 16, offset: 1017},
+							exprs: []interface{}{
+								&ruleRefExpr{
+									pos:  position{line: 64, col: 16, offset: 1017},
+									name: "CrumbSeparator",
+								},
+								&ruleRefExpr{
+									pos:  position{line: 64, col: 31, offset: 1032},
+									name: "Ident",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Ident",
+			pos:  position{line: 76, col: 1, offset: 1302},
+			expr: &actionExpr{
+				pos: position{line: 76, col: 10, offset: 1311},
 				run: (*parser).callonIdent1,
 				expr: &labeledExpr{
-					pos:   position{line: 28, col: 10, offset: 497},
+					pos:   position{line: 76, col: 10, offset: 1311},
 					label: "val",
 					expr: &oneOrMoreExpr{
-						pos: position{line: 28, col: 14, offset: 501},
+						pos: position{line: 76, col: 14, offset: 1315},
 						expr: &ruleRefExpr{
-							pos:  position{line: 28, col: 14, offset: 501},
+							pos:  position{line: 76, col: 14, offset: 1315},
 							name: "Char",
 						},
 					},
@@ -87,9 +171,9 @@ var g = &grammar{
 		},
 		{
 			name: "Char",
-			pos:  position{line: 32, col: 1, offset: 543},
+			pos:  position{line: 80, col: 1, offset: 1357},
 			expr: &charClassMatcher{
-				pos:        position{line: 32, col: 9, offset: 551},
+				pos:        position{line: 80, col: 9, offset: 1365},
 				val:        "[\\x30-\\x39\\x41-\\x7A\\xA1-\\u10FFFF]",
 				chars:      []rune{'F', 'F'},
 				ranges:     []rune{'0', '9', 'A', 'z', '¡', 'ჿ'},
@@ -99,15 +183,15 @@ var g = &grammar{
 		},
 		{
 			name: "CrumbSeparator",
-			pos:  position{line: 34, col: 1, offset: 586},
+			pos:  position{line: 82, col: 1, offset: 1400},
 			expr: &actionExpr{
-				pos: position{line: 34, col: 19, offset: 604},
+				pos: position{line: 82, col: 19, offset: 1418},
 				run: (*parser).callonCrumbSeparator1,
 				expr: &labeledExpr{
-					pos:   position{line: 34, col: 19, offset: 604},
+					pos:   position{line: 82, col: 19, offset: 1418},
 					label: "val",
 					expr: &litMatcher{
-						pos:        position{line: 34, col: 23, offset: 608},
+						pos:        position{line: 82, col: 23, offset: 1422},
 						val:        ".",
 						ignoreCase: false,
 					},
@@ -115,12 +199,48 @@ var g = &grammar{
 			},
 		},
 		{
+			name: "FilterSeparator",
+			pos:  position{line: 86, col: 1, offset: 1462},
+			expr: &actionExpr{
+				pos: position{line: 86, col: 20, offset: 1481},
+				run: (*parser).callonFilterSeparator1,
+				expr: &labeledExpr{
+					pos:   position{line: 86, col: 20, offset: 1481},
+					label: "val",
+					expr: &litMatcher{
+						pos:        position{line: 86, col: 24, offset: 1485},
+						val:        "|",
+						ignoreCase: false,
+					},
+				},
+			},
+		},
+		{
+			name:        "_",
+			displayName: "\"whitespace\"",
+			pos:         position{line: 90, col: 1, offset: 1525},
+			expr: &actionExpr{
+				pos: position{line: 90, col: 19, offset: 1543},
+				run: (*parser).callon_1,
+				expr: &zeroOrMoreExpr{
+					pos: position{line: 90, col: 19, offset: 1543},
+					expr: &charClassMatcher{
+						pos:        position{line: 90, col: 19, offset: 1543},
+						val:        "[ \\t\\r\\n]",
+						chars:      []rune{' ', '\t', '\r', '\n'},
+						ignoreCase: false,
+						inverted:   false,
+					},
+				},
+			},
+		},
+		{
 			name: "EOF",
-			pos:  position{line: 39, col: 1, offset: 649},
+			pos:  position{line: 94, col: 1, offset: 1589},
 			expr: &notExpr{
-				pos: position{line: 39, col: 7, offset: 657},
+				pos: position{line: 94, col: 7, offset: 1597},
 				expr: &anyMatcher{
-					line: 39, col: 8, offset: 658,
+					line: 94, col: 8, offset: 1598,
 				},
 			},
 		},
@@ -128,6 +248,31 @@ var g = &grammar{
 }
 
 func (c *current) onQUERY1(vals interface{}) (interface{}, error) {
+	result := &Query{Parts: []*Expr{}}
+	for _, v := range AsSlice(vals) {
+		s := StripWS(AsSlice(v))
+		result.Parts = append(result.Parts, s[1].(*Expr))
+	}
+	return result, nil
+}
+
+func (p *parser) callonQUERY1() (interface{}, error) {
+	stack := p.vstack[len(p.vstack)-1]
+	_ = stack
+	return p.cur.onQUERY1(stack["vals"])
+}
+
+func (c *current) onExpr1(val interface{}) (interface{}, error) {
+	return &Expr{Trail: val.(*Trail)}, nil
+}
+
+func (p *parser) callonExpr1() (interface{}, error) {
+	stack := p.vstack[len(p.vstack)-1]
+	_ = stack
+	return p.cur.onExpr1(stack["val"])
+}
+
+func (c *current) onTrail1(vals interface{}) (interface{}, error) {
 	results := []*Crumb{}
 	crumbs := AsSlice(vals)
 	for _, crumb := range crumbs {
@@ -136,13 +281,13 @@ func (c *current) onQUERY1(vals interface{}) (interface{}, error) {
 		Fill(c, crumbVals)
 		results = append(results, c)
 	}
-	return results, nil
+	return &Trail{Crumbs: results}, nil
 }
 
-func (p *parser) callonQUERY1() (interface{}, error) {
+func (p *parser) callonTrail1() (interface{}, error) {
 	stack := p.vstack[len(p.vstack)-1]
 	_ = stack
-	return p.cur.onQUERY1(stack["vals"])
+	return p.cur.onTrail1(stack["vals"])
 }
 
 func (c *current) onIdent1(val interface{}) (interface{}, error) {
@@ -163,6 +308,26 @@ func (p *parser) callonCrumbSeparator1() (interface{}, error) {
 	stack := p.vstack[len(p.vstack)-1]
 	_ = stack
 	return p.cur.onCrumbSeparator1(stack["val"])
+}
+
+func (c *current) onFilterSeparator1(val interface{}) (interface{}, error) {
+	return string(c.text), nil
+}
+
+func (p *parser) callonFilterSeparator1() (interface{}, error) {
+	stack := p.vstack[len(p.vstack)-1]
+	_ = stack
+	return p.cur.onFilterSeparator1(stack["val"])
+}
+
+func (c *current) on_1() (interface{}, error) {
+	return &Whitespace{}, nil
+}
+
+func (p *parser) callon_1() (interface{}, error) {
+	stack := p.vstack[len(p.vstack)-1]
+	_ = stack
+	return p.cur.on_1()
 }
 
 var (

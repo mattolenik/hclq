@@ -17,7 +17,7 @@ func main() {
 }
 
 func mainError() error {
-	q := ".abc.Ǔdef.xyz"
+	q := "| .abc.Ǔdef.xyz |.bbb.ccc |.ddd"
 	r, err := queryast.Parse("inline", []byte(q))
 	repr.Println(r)
 	repr.Println(err)

@@ -1,19 +1,70 @@
-{//code
+#  __ __  __  __
+# /  /  \|  \|_
+# \__\__/|__/|__
+
+{#code
 
 package queryast
 
 import (
+	"fmt"
 	"github.com/alecthomas/repr"
 	. "github.com/mattolenik/hclq/structs"
+	"reflect"
 )
+
+type Query struct {
+	Parts []*Expr
+}
+
+type Expr struct {
+	Trail *Trail
+}
+
+type Trail struct {
+	Crumbs []*Crumb
+}
 
 type Crumb struct {
 	Separator string `index:"0"`
 	Value     string `index:"1"`
 }
-}//code
 
-QUERY <- vals:(CrumbSeparator Ident)+ EOF {
+type Whitespace struct{}
+
+func StripWS(values []interface{}) []interface{} {
+	result := []interface{}{}
+	for _, v := range values {
+		switch v.(type) {
+		case Whitespace:
+		case *Whitespace:
+			continue
+		default:
+			result = append(result, v)
+		}
+	}
+	return result
+}
+}#code
+
+#  __  __                  __
+# / _ |__) /\ |\/||\/| /\ |__)
+# \__)| \ /--\|  ||  |/--\| \
+
+QUERY <- vals:(_ FilterSeparator _ Expr _)+ EOF {
+    result := &Query{Parts: []*Expr{}}
+    for _, v := range AsSlice(vals) {
+        s := StripWS(AsSlice(v))
+        result.Parts = append(result.Parts, s[1].(*Expr))
+    }
+    return result, nil
+}
+
+Expr <- val:(Trail) {
+    return &Expr{Trail: val.(*Trail)}, nil
+}
+
+Trail <- vals:(CrumbSeparator Ident)+ {
     results := []*Crumb{}
     crumbs := AsSlice(vals)
     for _, crumb := range crumbs {
@@ -22,7 +73,7 @@ QUERY <- vals:(CrumbSeparator Ident)+ EOF {
         Fill(c, crumbVals)
         results = append(results, c)
     }
-    return results, nil
+    return &Trail{Crumbs: results}, nil
 }
 
 Ident <- val:Char+ {
@@ -35,7 +86,12 @@ CrumbSeparator <- val:'.' {
     return string(c.text), nil
 }
 
+FilterSeparator <- val:'|' {
+    return string(c.text), nil
+}
+
+_ "whitespace" <- [ \t\r\n]* {
+    return &Whitespace{}, nil
+}
 
 EOF ← !.
-
-// x30-x39 x41-x7A xA1-xFFFF

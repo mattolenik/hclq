@@ -6,8 +6,8 @@ fail() { echo "$*" >&2; exit 1; }
 
 NL=$'\n'
 EXTENSION=peg
-START_BLOCK='{//code'
-END_BLOCK='}//code'
+START_BLOCK='{#code'
+END_BLOCK='}#code'
 
 process() {
   local before_code=""

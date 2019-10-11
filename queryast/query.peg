@@ -58,7 +58,7 @@ Expr <- first:(Path / Function) rest:SubExpr? {
     case *FunctionCall:
         result.FnCall = v
     default:
-        return nil, fmt.Errorf("unexpected type")
+        return nil, fmt.Errorf("unexpected type in Expr")
     }
     return result, nil
 }
@@ -80,7 +80,7 @@ Params <- '(' params:MultiParam? ')' {
 
 MultiParam <- first:SingleParam rest:SubMultiParam* {
     results := []interface{}{first}
-    results = append(results, rest)
+    results = append(results, AsSlice(rest)...)
     return results, nil
 }
 
@@ -99,7 +99,11 @@ Crumb <- CrumbSeparator ident:Ident {
 Path <- vals:Crumb+ {
     crumbs := []*Crumb{}
     for _, v := range AsSlice(vals) {
-        crumbs = append(crumbs, v.(*Crumb))
+        crumb, ok := v.(*Crumb)
+        if !ok {
+            return nil, fmt.Errorf("invalid type, expected type *Crumb")
+        }
+        crumbs = append(crumbs, crumb)
     }
     return &Path{Crumbs: crumbs}, nil
 }

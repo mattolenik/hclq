@@ -101,7 +101,7 @@ Ident <- val:Char+ {
     return string(c.text), nil
 }
 
-Char "unicode ident char" <- [\x30-\x39\x41-\x5A\x61-\x7A\xA1-\u10FFFF]
+Char "unicode ident char" <- [\x30-\x39 \x41-\x5A \x61-\x7A \xA1-\u10FFFF \x2D/\x5F]
 
 CrumbSeparator <- '.' {
     return nil, nil

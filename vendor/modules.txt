@@ -2,10 +2,10 @@
 github.com/Songmu/retry
 # github.com/agext/levenshtein v1.2.1
 github.com/agext/levenshtein
-# github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1
-github.com/alecthomas/repr
 # github.com/apparentlymart/go-textseg v1.0.0
 github.com/apparentlymart/go-textseg/textseg
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
 # github.com/golang/protobuf v1.2.0
 github.com/golang/protobuf/proto
 # github.com/google/go-github v17.0.0+incompatible
@@ -37,6 +37,10 @@ github.com/mna/pigeon/ast
 github.com/mna/pigeon/builder
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
+# github.com/stretchr/testify v1.4.0
+github.com/stretchr/testify/assert
 # github.com/tcnksm/ghr v0.13.0
 github.com/tcnksm/ghr
 # github.com/tcnksm/go-gitconfig v0.1.2
@@ -87,3 +91,5 @@ google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/remote_api
 google.golang.org/appengine/internal/urlfetch
 google.golang.org/appengine/urlfetch
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2

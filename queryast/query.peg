@@ -17,19 +17,17 @@ type Query struct {
 }
 
 type Expr struct {
-	Trail  *Trail
+	Path   *Path
 	FnCall *FunctionCall
 	Expr   interface{}
 }
-
-var ExprType Expr
 
 type FunctionCall struct {
 	Name   string
 	Params interface{}
 }
 
-type Trail struct {
+type Path struct {
 	Crumbs []*Crumb
 }
 
@@ -52,15 +50,15 @@ QUERY <- _ exp:Expr _ EOF {
     return exp, nil
 }
 
-Expr <- first:(Trail / Function) rest:SubExpr? {
+Expr <- first:(Path / Function) rest:SubExpr? {
     result := &Expr{Expr: rest}
     switch v := first.(type) {
-    case Trail:
-    case *Trail:
-        result.Trail = v
-    case FunctionCall:
+    case *Path:
+        result.Path = v
     case *FunctionCall:
         result.FnCall = v
+    default:
+        return nil, fmt.Errorf("unexpected type")
     }
     return result, nil
 }
@@ -98,12 +96,12 @@ Crumb <- CrumbSeparator ident:Ident {
     return &Crumb{Value: ident.(string)}, nil
 }
 
-Trail <- vals:Crumb+ {
+Path <- vals:Crumb+ {
     crumbs := []*Crumb{}
     for _, v := range AsSlice(vals) {
         crumbs = append(crumbs, v.(*Crumb))
     }
-    return &Trail{Crumbs: crumbs}, nil
+    return &Path{Crumbs: crumbs}, nil
 }
 
 Ident <- val:Char+ {

@@ -1,14 +1,13 @@
-#  __ __  __  __
-# /  /  \|  \|_
-# \__\__/|__/|__
+//  __ __  __  __
+// /  /  \|  \|_
+// \__\__/|__/|__
 
-{#code
+{//code
 
 package queryast
 
 import (
 	"fmt"
-	"github.com/alecthomas/repr"
 	. "github.com/mattolenik/hclq/structs"
 	"reflect"
 )
@@ -18,62 +17,93 @@ type Query struct {
 }
 
 type Expr struct {
-	Trail *Trail
+	Trail  *Trail
+	FnCall *FunctionCall
+	Expr   interface{}
+}
+
+var ExprType Expr
+
+type FunctionCall struct {
+	Name   string
+	Params interface{}
 }
 
 type Trail struct {
-	Crumbs []*Crumb
+    Crumbs []*Crumb
 }
 
 type Crumb struct {
-	Separator string `index:"0"`
-	Value     string `index:"1"`
+	Value     string
 }
+
+type CrumbSeparator struct {}
+
+type PipeSeparator struct {}
 
 type Whitespace struct{}
 
-func StripWS(values []interface{}) []interface{} {
-	result := []interface{}{}
-	for _, v := range values {
-		switch v.(type) {
-		case Whitespace:
-		case *Whitespace:
-			continue
-		default:
-			result = append(result, v)
-		}
-	}
-	return result
+}//code
+
+//  __  __                  __
+// / _ |__) /\ |\/||\/| /\ |__)
+// \__)| \ /--\|  ||  |/--\| \
+
+QUERY <- _ exp:Expr _ EOF {
+    return exp, nil
 }
-}#code
 
-#  __  __                  __
-# / _ |__) /\ |\/||\/| /\ |__)
-# \__)| \ /--\|  ||  |/--\| \
-
-QUERY <- vals:(_ FilterSeparator _ Expr _)+ EOF {
-    result := &Query{Parts: []*Expr{}}
-    for _, v := range AsSlice(vals) {
-        s := StripWS(AsSlice(v))
-        result.Parts = append(result.Parts, s[1].(*Expr))
+Expr <- first:(Trail / Function) rest:SubExpr? {
+    result := &Expr{Expr: rest}
+    switch v := first.(type) {
+    case Trail:
+    case *Trail:
+        result.Trail = v
+    case FunctionCall:
+    case *FunctionCall:
+        result.FnCall = v
     }
     return result, nil
 }
 
-Expr <- val:(Trail) {
-    return &Expr{Trail: val.(*Trail)}, nil
+SubExpr <- PipeSeparator expr:Expr {
+    return expr, nil
 }
 
-Trail <- vals:(CrumbSeparator Ident)+ {
-    results := []*Crumb{}
-    crumbs := AsSlice(vals)
-    for _, crumb := range crumbs {
-        crumbVals := AsSlice(crumb)
-        c := &Crumb{}
-        Fill(c, crumbVals)
-        results = append(results, c)
+Function <- ident:Ident args:Params? {
+    if args == nil {
+        args = []interface{}{}
     }
-    return &Trail{Crumbs: results}, nil
+    return &FunctionCall{Name: ident.(string), Params: args}, nil
+}
+
+Params <- '(' params:MultiParam? ')' {
+    return params, nil
+}
+
+MultiParam <- first:SingleParam rest:(',' SingleParam)* {
+    results := []string{first.(string)}
+    for _, v := range AsSlice(rest) {
+        vs := AsSlice(v)
+        results = append(results, vs[1].(string))
+    }
+    return results, nil
+}
+
+SingleParam <- _ param:Ident _ {
+    return param, nil
+}
+
+Crumb <- CrumbSeparator ident:Ident {
+    return &Crumb{Value: ident.(string)}, nil
+}
+
+Trail <- vals:Crumb+ {
+    crumbs := []*Crumb{}
+    for _, v := range AsSlice(vals) {
+        crumbs = append(crumbs, v.(*Crumb))
+    }
+    return &Trail{Crumbs: crumbs}, nil
 }
 
 Ident <- val:Char+ {
@@ -82,12 +112,12 @@ Ident <- val:Char+ {
 
 Char <- [\x30-\x39\x41-\x7A\xA1-\u10FFFF]
 
-CrumbSeparator <- val:'.' {
-    return string(c.text), nil
+CrumbSeparator <- '.' {
+    return &CrumbSeparator{}, nil
 }
 
-FilterSeparator <- val:'|' {
-    return string(c.text), nil
+PipeSeparator <- _ '|' _ {
+    return &PipeSeparator{}, nil
 }
 
 _ "whitespace" <- [ \t\r\n]* {

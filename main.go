@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alecthomas/repr"
+	//"github.com/alecthomas/repr"
+	"github.com/k0kubun/pp"
 	"github.com/mattolenik/hclq/queryast"
 )
 
@@ -17,9 +18,9 @@ func main() {
 }
 
 func mainError() error {
-	q := "| .abc.Ǔdef.xyz |.bbb.ccc |.ddd"
+	q := ".abc.Ǔdef | funcall(arg1, arg2) | func2(onearg) | func3()"
 	r, err := queryast.Parse("inline", []byte(q))
-	repr.Println(r)
-	repr.Println(err)
+	pp.Println(r)
+	pp.Println(err)
 	return nil
 }

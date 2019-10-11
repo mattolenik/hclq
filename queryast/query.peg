@@ -8,7 +8,6 @@ package queryast
 
 import (
 	"fmt"
-	. "github.com/mattolenik/hclq/structs"
 	"reflect"
 )
 
@@ -88,7 +87,7 @@ Params <- '(' params:MultiParam? ')' {
 
 MultiParam <- first:SingleParam rest:NextSingleParam* {
     results := []interface{}{first}
-    results = append(results, AsSlice(rest)...)
+    results = append(results, rest.([]interface{})...)
     return results, nil
 }
 
@@ -130,7 +129,7 @@ EmptySelector <- _ {
 
 Path <- vals:Crumb+ {
     crumbs := []*Crumb{}
-    for _, v := range AsSlice(vals) {
+    for _, v := range vals.([]interface{}) {
         crumb, ok := v.(*Crumb)
         if !ok {
             return nil, fmt.Errorf("invalid type, expected type *Crumb")

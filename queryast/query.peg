@@ -33,12 +33,6 @@ type Path struct {
 type Crumb struct {
 	Value string
 }
-
-type CrumbSeparator struct{}
-
-type PipeSeparator struct{}
-
-type Whitespace struct{}
 }//code
 
 //  __  __                  __
@@ -49,9 +43,13 @@ QUERY <- _ exp:Expr _ EOF {
     return exp, nil
 }
 
-Expr <- first:(Path / Function) rest:NextExpr? {
+Expr <- first:SubExpr rest:NextExpr? {
     result := &Expr{Node: first, Next: rest}
     return result, nil
+}
+
+SubExpr <- val:(Path / Function) {
+    return val, nil
 }
 
 NextExpr <- PipeSeparator expr:Expr {
@@ -106,15 +104,16 @@ Ident <- val:Char+ {
 Char "unicode ident char" <- [\x30-\x39\x41-\x7A\xA1-\u10FFFF]
 
 CrumbSeparator <- '.' {
-    return &CrumbSeparator{}, nil
+    return nil, nil
 }
 
 PipeSeparator <- _ '|' _ {
-    return &PipeSeparator{}, nil
+    return nil, nil
 }
 
 _ "whitespace" <- [ \t\r\n]* {
-    return &Whitespace{}, nil
+    return nil, nil
 }
 
 EOF ← !.
+

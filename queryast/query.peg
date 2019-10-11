@@ -80,13 +80,14 @@ Params <- '(' params:MultiParam? ')' {
     return params, nil
 }
 
-MultiParam <- first:SingleParam rest:(',' SingleParam)* {
-    results := []string{first.(string)}
-    for _, v := range AsSlice(rest) {
-        vs := AsSlice(v)
-        results = append(results, vs[1].(string))
-    }
+MultiParam <- first:SingleParam rest:SubMultiParam* {
+    results := []interface{}{first}
+    results = append(results, rest)
     return results, nil
+}
+
+SubMultiParam <- ',' val:SingleParam {
+    return val, nil
 }
 
 SingleParam <- _ param:Ident _ {
@@ -109,7 +110,7 @@ Ident <- val:Char+ {
     return string(c.text), nil
 }
 
-Char <- [\x30-\x39\x41-\x7A\xA1-\u10FFFF]
+Char "unicode char" <- [\x30-\x39\x41-\x7A\xA1-\u10FFFF]
 
 CrumbSeparator <- '.' {
     return &CrumbSeparator{}, nil

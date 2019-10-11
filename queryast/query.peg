@@ -31,7 +31,26 @@ type Path struct {
 }
 
 type Crumb struct {
-	Value string
+	Key *Key
+}
+
+type EmptySelector struct {
+}
+
+type IndexSelector struct {
+	Index int
+}
+
+type SplatSelector struct {
+}
+
+type MapSelector struct {
+	Key string
+}
+
+type Key struct {
+	Ident    string
+	Selector interface{}
 }
 }//code
 
@@ -81,8 +100,32 @@ SingleParam <- _ param:Expr _ {
     return param, nil
 }
 
-Crumb <- CrumbSeparator ident:Ident {
-    return &Crumb{Value: ident.(string)}, nil
+Crumb <- CrumbSeparator key:Key {
+    return &Crumb{Key: key.(*Key)}, nil
+}
+
+Key <- ident:Ident sel:Selector? {
+    return &Key{Ident:ident.(string), Selector:sel}, nil
+}
+
+Selector <- '[' val:(SplatSelector / IndexSelector / MapSelector / EmptySelector )? ']' {
+    return val, nil
+}
+
+SplatSelector <- '*' {
+    return &SplatSelector{}, nil
+}
+
+IndexSelector <- val:Int {
+    return &IndexSelector{Index: val.(int)}, nil
+}
+
+MapSelector <- val:Ident {
+    return &MapSelector{Key: val.(string)}, nil
+}
+
+EmptySelector <- _ {
+    return &EmptySelector{}, nil
 }
 
 Path <- vals:Crumb+ {
@@ -101,7 +144,13 @@ Ident <- val:Char+ {
     return string(c.text), nil
 }
 
-Char "unicode ident char" <- [\x30-\x39 \x41-\x5A \x61-\x7A \xA1-\u10FFFF \x2D/\x5F]
+Char "unicode ident char" <- [\x2D\x5F\x30-\x39\x41-\x5A\x61-\x7A\xA1-\u10FFFF]
+
+Int <- '-'? DecimalDigit+ {
+    return strconv.Atoi(string(c.text))
+}
+
+DecimalDigit <- [0-9]
 
 CrumbSeparator <- '.' {
     return nil, nil
@@ -116,4 +165,3 @@ _ "whitespace" <- [ \t\r\n]* {
 }
 
 EOF ← !.
-

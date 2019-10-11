@@ -8,7 +8,6 @@ package queryast
 
 import (
 	"fmt"
-	"reflect"
 )
 
 type Query struct {

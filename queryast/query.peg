@@ -13,13 +13,12 @@ import (
 )
 
 type Query struct {
-	Parts []*Expr
+	Parts *Expr
 }
 
 type Expr struct {
-	Path   *Path
-	FnCall *FunctionCall
-	Expr   interface{}
+	Node interface{}
+	Next interface{}
 }
 
 type FunctionCall struct {
@@ -50,20 +49,12 @@ QUERY <- _ exp:Expr _ EOF {
     return exp, nil
 }
 
-Expr <- first:(Path / Function) rest:SubExpr? {
-    result := &Expr{Expr: rest}
-    switch v := first.(type) {
-    case *Path:
-        result.Path = v
-    case *FunctionCall:
-        result.FnCall = v
-    default:
-        return nil, fmt.Errorf("unexpected type in Expr")
-    }
+Expr <- first:(Path / Function) rest:NextExpr? {
+    result := &Expr{Node: first, Next: rest}
     return result, nil
 }
 
-SubExpr <- PipeSeparator expr:Expr {
+NextExpr <- PipeSeparator expr:Expr {
     return expr, nil
 }
 
@@ -78,13 +69,13 @@ Params <- '(' params:MultiParam? ')' {
     return params, nil
 }
 
-MultiParam <- first:SingleParam rest:SubMultiParam* {
+MultiParam <- first:SingleParam rest:NextSingleParam* {
     results := []interface{}{first}
     results = append(results, AsSlice(rest)...)
     return results, nil
 }
 
-SubMultiParam <- ',' val:SingleParam {
+NextSingleParam <- ',' val:SingleParam {
     return val, nil
 }
 

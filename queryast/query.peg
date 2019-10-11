@@ -88,7 +88,7 @@ SubMultiParam <- ',' val:SingleParam {
     return val, nil
 }
 
-SingleParam <- _ param:Ident _ {
+SingleParam <- _ param:Expr _ {
     return param, nil
 }
 

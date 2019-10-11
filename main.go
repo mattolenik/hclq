@@ -18,7 +18,7 @@ func main() {
 }
 
 func mainError() error {
-	q := ".abc.Ǔdef | funcall(arg1, arg2) | func2(onearg) | func3()"
+	q := ".abc.Ǔdef | funcall(.arg1, .arg2) | func2(onearg) | func3(.x | abc)"
 	r, err := queryast.Parse("inline", []byte(q))
 	pp.Println(r)
 	pp.Println(err)

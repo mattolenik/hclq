@@ -30,19 +30,18 @@ type FunctionCall struct {
 }
 
 type Trail struct {
-    Crumbs []*Crumb
+	Crumbs []*Crumb
 }
 
 type Crumb struct {
-	Value     string
+	Value string
 }
 
-type CrumbSeparator struct {}
+type CrumbSeparator struct{}
 
-type PipeSeparator struct {}
+type PipeSeparator struct{}
 
 type Whitespace struct{}
-
 }//code
 
 //  __  __                  __

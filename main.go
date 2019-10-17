@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"reflect"
@@ -18,15 +19,19 @@ func main() {
 	}
 }
 
-func mainError() error {
-	config := `
+var config string = `
 type1 label1 label2 label3 {
 a = upper(upper("abc"))
 b lb1 {
 d = "abc"
 }
 }
-	`
+`
+
+var configBytes []byte = []byte(config)
+
+func mainError() error {
+
 	//q := os.Args[1]
 	//_, err := queryast.Parse("inline", []byte(q))
 	//pp.Println(r)
@@ -39,6 +44,17 @@ d = "abc"
 	pp.Println(r)
 	pp.Println(err)
 	return nil
+}
+
+func extractRange(r hcl.Range) string {
+	sc := hcl.NewRangeScannerFragment(configBytes, "config", r.Start, bufio.ScanLines)
+	result := ""
+	for sc.Scan() {
+		if sc.Range() == r {
+			result += string(sc.Bytes())
+		}
+	}
+	return result
 }
 
 func traverse(node interface{}) (interface{}, error) {
@@ -55,13 +71,12 @@ func traverse(node interface{}) (interface{}, error) {
 		}
 		return nil, nil
 	case *hclsyntax.Attribute:
-		fmt.Println("a:" + v.Name)
 		return traverse(v.Expr)
 	case *hclsyntax.Block:
-		fmt.Println("b:" + v.Type)
 		return traverse(v.Body)
-	case *hclsyntax.TemplateExpr:
-	case *hclsyntax.FunctionCallExpr:
+	case hclsyntax.Expression:
+		r := v.Range()
+		fmt.Println(extractRange(r))
 	default:
 		fmt.Println(reflect.TypeOf(v))
 	}

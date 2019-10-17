@@ -17,6 +17,7 @@ PIGEON_SRC       = $(shell find vendor/$(PIGEON_MODULE) -type f -name '*.go')
 GOIMPORTS       := $(TOOLS)/goimports
 GOIMPORTS_MODULE := golang.org/x/tools/cmd/goimports
 GOIMPORTS_SRC   = $(shell find vendor/$(GOIMPORTS_MODULE) -type f -name '*.go')
+MODULE_NAME     = $(shell awk '/module/ {print $$2; exit}' < go.mod)
 
 default: test build README.md
 
@@ -98,7 +99,7 @@ run: peg build
 	@dist/hclq $(ARGS)
 
 fmt:
-	go fmt ./...
+	go fmt $(MODULE_NAME)/...
 	tools/peg-fmt.sh
 
 .PHONY: clean install publish test

@@ -41,7 +41,10 @@ process() {
     fi
   done
   printf '%s\n' "$before_code"
-  printf '%s\n' "$code" | gofmt
+  gofmt <<< "$code"
+  if (( $? != 0 )); then  # ?? this line should not be needed with set -euo pipefail, why?
+    return 1
+  fi
   printf '%s\n' "$after_code"
 }
 

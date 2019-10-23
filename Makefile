@@ -28,8 +28,8 @@ $(DIST)/hclq: $(SOURCE)
 
 peg: queryast/query_peg.go
 
-queryast/%_peg.go: queryast/%.peg | peg-prereqs
-	$(PIGEON) $< | $(GOIMPORTS) > $@
+queryast/query_peg.go: queryast/code/query.go queryast/query.peg | peg-prereqs
+	cat queryast/query.peg | tools/include.sh | $(PIGEON) | $(GOIMPORTS) > $@
 
 clean:
 	rm -rf $(DIST) $(TOOLS)
@@ -100,6 +100,5 @@ run: peg build
 
 fmt:
 	go fmt $(MODULE_NAME)/...
-	tools/peg-fmt.sh
 
 .PHONY: clean install publish test

@@ -2,55 +2,11 @@
 // /  /  \|  \|_
 // \__\__/|__/|__
 
-{//code
-
+{
 package queryast
 
-import (
-	"fmt"
-)
-
-type Query struct {
-	Parts *Expr
+include queryast/code/query.go
 }
-
-type Expr struct {
-	Node interface{}
-	Next interface{}
-}
-
-type FunctionCall struct {
-	Name   string
-	Params interface{}
-}
-
-type Path struct {
-	Crumbs []*Crumb
-}
-
-type Crumb struct {
-	Key *Key
-}
-
-type EmptySelector struct {
-}
-
-type IndexSelector struct {
-	Index int
-}
-
-type SplatSelector struct {
-}
-
-type MapSelector struct {
-	Key string
-}
-
-type Key struct {
-	Ident    string
-	Selector interface{}
-}
-}//code
 
 //  __  __                  __
 // / _ |__) /\ |\/||\/| /\ |__)

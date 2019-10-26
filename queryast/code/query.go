@@ -9,6 +9,17 @@ type Expr struct {
 	Next interface{}
 }
 
+type nextExpr struct {
+	Separator interface{}
+	Expr      *Expr
+}
+
+type PipeOperator struct {
+}
+
+type DescentOperator struct {
+}
+
 type FunctionCall struct {
 	Name   string
 	Params interface{}
@@ -19,7 +30,8 @@ type Path struct {
 }
 
 type Crumb struct {
-	Key *Key
+	Key  *Key
+	Next interface{}
 }
 
 type EmptySelector struct {

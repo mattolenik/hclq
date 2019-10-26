@@ -21,12 +21,16 @@ Expr <- first:SubExpr rest:NextExpr? {
     return result, nil
 }
 
-SubExpr <- val:(Path / Function) {
+SubExpr <- val:(Crumb / Function) {
     return val, nil
 }
 
-NextExpr <- PipeSeparator expr:Expr {
-    return expr, nil
+NextExpr <- sep:PipeSeparator expr:Expr {
+    return &nextExpr{Separator:sep, Expr:expr.(*Expr)}, nil
+}
+
+Separator <- sep:(PipeSeparator / CrumbSeparator) {
+    return sep, nil
 }
 
 Function <- ident:Ident args:Params? {
@@ -54,7 +58,12 @@ SingleParam <- _ param:Expr _ {
     return param, nil
 }
 
-Crumb <- CrumbSeparator key:Key {
+Crumb <- first:SubCrumb rest:Crumb? {
+    (first.(*Crumb)).Next = rest
+    return first, nil
+}
+
+SubCrumb <- CrumbSeparator key:Key {
     return &Crumb{Key: key.(*Key)}, nil
 }
 
@@ -107,11 +116,11 @@ Int <- '-'? DecimalDigit+ {
 DecimalDigit <- [0-9]
 
 CrumbSeparator <- '.' {
-    return nil, nil
+    return &DescentOperator{}, nil
 }
 
 PipeSeparator <- _ '|' _ {
-    return nil, nil
+    return &PipeOperator{}, nil
 }
 
 _ "whitespace" <- [ \t\r\n]* {

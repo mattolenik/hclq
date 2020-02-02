@@ -1,5 +1,7 @@
 package code
 
+import "github.com/hashicorp/hcl2/hcl/hclsyntax"
+
 type Query struct {
 	Parts *Expr
 }
@@ -7,6 +9,25 @@ type Query struct {
 type Expr struct {
 	Node interface{}
 	Next interface{}
+}
+
+type Exp interface {
+	Input(node hclsyntax.Node)
+	Evaluate()
+}
+
+type GatherExpr interface {
+	Gather() interface{}
+	Node() interface{}
+}
+
+type ResultsExpr interface {
+	Results() interface{}
+}
+
+type ExecuteExpr interface {
+	SetInput(GatherExpr)
+	Execute() ResultsExpr
 }
 
 type nextExpr struct {
@@ -23,10 +44,6 @@ type DescentOperator struct {
 type FunctionCall struct {
 	Name   string
 	Params interface{}
-}
-
-type Path struct {
-	Crumbs []*Crumb
 }
 
 type Crumb struct {

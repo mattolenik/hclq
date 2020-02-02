@@ -23,6 +23,9 @@ func main() {
 var config string = `
 a = {
 	b = 4
+	c = {
+		f = "xz"
+	}
 }
 `
 
@@ -68,7 +71,6 @@ func traverseQuery(queryNode interface{}, hclNode interface{}) (interface{}, err
 		}
 		// traverseQuery(n.Next) somehow pipe input here
 		return r, nil
-	case *queryast.Path:
 	}
 	return nil, nil
 }
@@ -129,6 +131,8 @@ func matchPath(crumbs []*queryast.Crumb, crumbIndex int, hclNode interface{}) (i
 		}
 		return nil, nil
 	case *hclsyntax.Attribute:
+		//n.Expr.Value()
+		//n.Expr
 		if n.Name == crumb.Key.Ident {
 			return matchPath(crumbs, crumbIndex+1, n)
 		}

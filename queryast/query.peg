@@ -29,10 +29,6 @@ NextExpr <- sep:PipeSeparator expr:Expr {
     return &nextExpr{Separator:sep, Expr:expr.(*Expr)}, nil
 }
 
-Separator <- sep:(PipeSeparator / CrumbSeparator) {
-    return sep, nil
-}
-
 Function <- ident:Ident args:Params? {
     if args == nil {
         args = []interface{}{}
@@ -89,18 +85,6 @@ MapSelector <- val:Ident {
 
 EmptySelector <- _ {
     return &EmptySelector{}, nil
-}
-
-Path <- vals:Crumb+ {
-    crumbs := []*Crumb{}
-    for _, v := range vals.([]interface{}) {
-        crumb, ok := v.(*Crumb)
-        if !ok {
-            return nil, fmt.Errorf("invalid type, expected type *Crumb")
-        }
-        crumbs = append(crumbs, crumb)
-    }
-    return &Path{Crumbs: crumbs}, nil
 }
 
 Ident <- val:Char+ {

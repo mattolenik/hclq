@@ -43,7 +43,7 @@ Or just download [install.sh](https://raw.githubusercontent.com/mattolenik/hclq/
 
 ## Install with Go
 
-`go get -u github.com/mattolenik/hclq`
+`go install github.com/mattolenik/hclq@latest`
 
 Keep in mind this will install whatever is on the `master` branch. A stable release is recommended unless you are doing development.
 

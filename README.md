@@ -1,3 +1,5 @@
+NOTICE: This project is no longer actively maintained. Thanks to the improvements since HCL2 I don't feel that hclq is as useful as it once was. If you would like to fork and maintain the project, please feel free!
+
 [![Build status](https://ci.appveyor.com/api/projects/status/a013fsit6rh0nk93?svg=true)](https://ci.appveyor.com/project/MattOlenik/hclq)
 
 # About

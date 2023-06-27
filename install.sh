@@ -46,7 +46,7 @@ platform_check() {
 main() {
   platform_check
 
-  while getopts ":qhdao:" opt; do
+  while getopts ":qhd:a:o:" opt; do
     case $opt in
       q) QUIET=true ;;
       d) DESTINATION="$OPTARG" ;;

@@ -21,7 +21,7 @@ init:
     fi
     export PATH="$HOME/go/bin:/usr/local/go/bin:$PATH"
     # Print environment variables for debugging
-    env
+    env | sort -n
 
 environment:
   GITHUB_TOKEN:
@@ -31,7 +31,7 @@ environment:
   GO_VERSION: go1.12.5
 
 build_script:
-- sh: make dist
+- sh: make clean dist
 
 test_script:
 - sh: make testci
